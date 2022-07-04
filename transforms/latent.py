@@ -46,10 +46,11 @@ norm = {
 # Converts images to a latent space. Then converts the latent space to a suitable range for GANs (-1 to 1)
 
 def download_pre_trained_ae(url, output_dir):
-    if os.path.exists(output_dir):
+    if os.path.exists(f"{CACHE_MODEL_DIR}/model.ckpt"):
         print("Used cache")
     else:
-        os.makedirs(output_dir)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
         filename = wget.download(url)
 
