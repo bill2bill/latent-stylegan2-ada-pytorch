@@ -32,7 +32,7 @@ DEFAULT_AE_CONFIG = {
     },
     "embed_dim": 3
 }
-CACHE_MODEL_DIR = './pretrained_models'
+CACHE_MODEL_DIR = 'pretrained_models'
 
 #----------------------------------------------------------------------------
 # GAN Normalising contanstants
@@ -59,12 +59,13 @@ def download_pre_trained_ae(url, output_dir):
         if os.path.exists(filename):
             os.remove(filename)
 
+def setup():
+    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 
 class Autoencoder():
     def __init__(self, device, num_gpus):
         self.device = device
-        download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)

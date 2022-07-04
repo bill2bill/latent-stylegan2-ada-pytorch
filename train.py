@@ -22,6 +22,8 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
+from transforms.latent import setup
+
 #----------------------------------------------------------------------------
 
 class UserError(Exception):
@@ -97,6 +99,13 @@ def setup_training_loop_kwargs(
         seed = 0
     assert isinstance(seed, int)
     args.random_seed = seed
+
+    # ------------------------------------
+    # Pretrained models
+    # -----------------------------------
+    
+    # Autoencoder setup
+    setup()
 
     # -----------------------------------
     # Dataset: data, cond, subset, mirror
