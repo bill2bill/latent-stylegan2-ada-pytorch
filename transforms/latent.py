@@ -1,6 +1,6 @@
 ﻿import os
-import wget
 import zipfile
+import requests 
 
 import numpy as np
 
@@ -45,20 +45,30 @@ norm = {
 #----------------------------------------------------------------------------
 # Converts images to a latent space. Then converts the latent space to a suitable range for GANs (-1 to 1)
 
+
+
+def download_url(url, save_path, chunk_size=128):
+    r = requests.get(url, stream=True)
+    with open(save_path, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            fd.write(chunk)
+
 def download_pre_trained_ae(url, output_dir):
-    if os.path.exists(f"{CACHE_MODEL_DIR}/model.ckpt"):
+    path = f"{CACHE_MODEL_DIR}/model.ckpt"
+    tmp_path = './tmp'
+    if os.path.exists(path):
         print("Used cache")
     else:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        filename = wget.download(url)
+        download_url(url, tmp_path)
 
-        with zipfile.ZipFile(filename, 'r') as zip_ref:
+        with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
             zip_ref.extractall(output_dir)
 
-        if os.path.exists(filename):
-            os.remove(filename)
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
