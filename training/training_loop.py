@@ -131,7 +131,7 @@ def training_loop(
     torch.backends.cudnn.allow_tf32 = allow_tf32        # Allow PyTorch to internally use tf32 for convolutions
     conv2d_gradfix.enabled = True                       # Improves training speed.
     grid_sample_gradfix.enabled = True                  # Avoids errors with the augmentation pipe.
-    autoencoder = Autoencoder(device, num_gpus)
+    autoencoder = Autoencoder(device)
 
     # Load training set.
     if rank == 0:

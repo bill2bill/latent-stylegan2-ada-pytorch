@@ -75,15 +75,14 @@ def setup():
 
 
 class Autoencoder():
-    def __init__(self, device, num_gpus):
+    def __init__(self, device):
         self.device = device
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
         model.to(device)
-        if (num_gpus > 1):
-            model.encoder = nn.DataParallel(model.encoder, list(range(num_gpus)))
-            model.decoder = nn.DataParallel(model.decoder, list(range(num_gpus)))
+        model.encoder = nn.parallel.DistributedDataParallel(model.encoder, device_ids=[device], broadcast_buffers=False)
+        model.decoder = nn.parallel.DistributedDataParallel(model.decoder, device_ids=[device], broadcast_buffers=False)
         self.model = model
 
     def encode(self, images):
