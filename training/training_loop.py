@@ -23,6 +23,7 @@ from torch_utils.ops import grid_sample_gradfix
 
 import legacy
 from metrics import metric_main
+from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -94,7 +95,6 @@ def training_loop(
     G_opt_kwargs            = {},       # Options for generator optimizer.
     D_opt_kwargs            = {},       # Options for discriminator optimizer.
     augment_kwargs          = None,     # Options for augmentation pipeline. None = disable.
-    autoencoder             = None,     # Autoencoder to .
     loss_kwargs             = {},       # Options for loss function.
     metrics                 = [],       # Metrics to evaluate during training.
     random_seed             = 0,        # Global random seed.
@@ -131,6 +131,8 @@ def training_loop(
     conv2d_gradfix.enabled = True                       # Improves training speed.
     grid_sample_gradfix.enabled = True                  # Avoids errors with the augmentation pipe.
     
+
+    autoencoder = Autoencoder(num_gpus, rank)
 
     # Load training set.
     if rank == 0:

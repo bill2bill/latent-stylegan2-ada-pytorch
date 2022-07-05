@@ -22,7 +22,7 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
-from transforms.latent import Autoencoder
+from transforms.latent import Autoencoder, setup
 
 #----------------------------------------------------------------------------
 
@@ -68,6 +68,9 @@ def setup_training_loop_kwargs(
     workers    = None, # Override number of DataLoader workers: <int>, default = 3
 ):
     args = dnnlib.EasyDict()
+
+    # Get pretrained model
+    setup()
 
     # ------------------------------------------
     # General options: gpus, snap, metrics, seed
