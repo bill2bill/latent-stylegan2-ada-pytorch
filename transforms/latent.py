@@ -70,7 +70,7 @@ def download_pre_trained_ae(url, output_dir):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-class Autoencoder():
+class Autoencoder:
     def __init__(self, num_gpus):
         self.device = torch.device('cuda:0')
         download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
