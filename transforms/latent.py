@@ -70,19 +70,17 @@ def download_pre_trained_ae(url, output_dir):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-def setup():
-    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
-
-
 class Autoencoder():
-    def __init__(self, device):
-        self.device = device
+    def __init__(self, num_gpus):
+        self.device = torch.device('cuda:0')
+        download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
-        model.to(device)
-        model.encoder = nn.parallel.DistributedDataParallel(model.encoder, device_ids=[device], broadcast_buffers=False)
-        model.decoder = nn.parallel.DistributedDataParallel(model.decoder, device_ids=[device], broadcast_buffers=False)
+        model.to(self.device)
+        if (num_gpus > 1):
+            model.encoder = nn.DataParallel(model.encoder, list(range(num_gpus)))
+            model.decoder = nn.DataParallel(model.decoder, list(range(num_gpus)))
         self.model = model
 
     def encode(self, images):

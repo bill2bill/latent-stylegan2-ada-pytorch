@@ -22,7 +22,7 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
-from transforms.latent import setup
+from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ def setup_training_loop_kwargs(
     # -----------------------------------
     
     # Autoencoder setup
-    setup()
+    args.autoencoder = Autoencoder(gpus)
 
     # -----------------------------------
     # Dataset: data, cond, subset, mirror
