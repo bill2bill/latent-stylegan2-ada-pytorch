@@ -246,13 +246,7 @@ def training_loop(
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
         gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
-        print(gen_z.shape)
-        print(gen_z.min())
-        print(gen_z.max())
         images = training_set.post_process(gen_z).cpu()
-        print(images.shape)
-        print(images.min())
-        print(images.max())
         save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
 
         # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)])
@@ -383,8 +377,11 @@ def training_loop(
 
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
-            images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
-            save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
+            gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
+            images = training_set.post_process(gen_z).cpu()
+            save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
+            # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
+            # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
         # # Save network snapshot.
         # snapshot_pkl = None
@@ -403,17 +400,17 @@ def training_loop(
         #         with open(snapshot_pkl, 'wb') as f:
         #             pickle.dump(snapshot_data, f)
 
-        # Evaluate metrics.
-        if (snapshot_data is not None) and (len(metrics) > 0):
-            if rank == 0:
-                print('Evaluating metrics...')
-            for metric in metrics:
-                result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
-                    dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
-                if rank == 0:
-                    metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
-                stats_metrics.update(result_dict.results)
-        del snapshot_data # conserve memory
+        # # Evaluate metrics.
+        # if (snapshot_data is not None) and (len(metrics) > 0):
+        #     if rank == 0:
+        #         print('Evaluating metrics...')
+        #     for metric in metrics:
+        #         result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
+        #             dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
+        #         if rank == 0:
+        #             metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
+        #         stats_metrics.update(result_dict.results)
+        # del snapshot_data # conserve memory
 
         # Collect statistics.
         for phase in phases:
