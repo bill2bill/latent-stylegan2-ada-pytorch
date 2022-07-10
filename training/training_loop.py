@@ -230,7 +230,7 @@ def training_loop(
         print(gen_z.shape)
         print(gen_z.min())
         print(gen_z.max())
-        images = torch.unsqueeze(training_set.post_process(gen_z), dim=0).cpu().detach().numpy()
+        images = training_set.post_process(gen_z).cpu().detach().numpy()
 
         # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')) for z, c in zip(grid_z, grid_c)])
         save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
