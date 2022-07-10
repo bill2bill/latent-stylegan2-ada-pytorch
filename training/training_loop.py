@@ -85,7 +85,7 @@ def save_image_grid(img, fname, drange, grid_size):
 
 def save_image_batch(img, fname, drange):
     lo, hi = drange
-    img = img[0] # Only save first image
+    img = img[0].permute(1, 2, 0) # Only save first image
     img = np.asarray(img, dtype=np.float32)
     img = (img - lo) * (255 / (hi - lo))
     img = np.rint(img).clip(0, 255).astype(np.uint8)
