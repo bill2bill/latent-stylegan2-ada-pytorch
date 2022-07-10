@@ -241,7 +241,7 @@ class ImageFolderDataset(Dataset):
 
     def post_process(self, img):
         if self._encode:
-            return self._autoencoder.decode(img).cpu().numpy()
+            return self._autoencoder.decode(img)
         return img
 
     def _load_raw_labels(self):
