@@ -99,9 +99,17 @@ class Autoencoder:
         return (img_shape[0], img_shape[1], int(img_shape[2] / 4), int(img_shape[3] / 4))
 
     def encode(self, images):
+        is_tensor = torch.is_tensor(images)
+        if not is_tensor:
+            images = torch.Tensor(images)
         latent = self.model.encode(images.to(self.device)).sample()
         norm_latent = latent / norm['std']
-        return torch.clamp(norm_latent, -1., 1.)
+        encoded = torch.clamp(norm_latent, -1., 1.)
+        
+        if not is_tensor:
+            images = encoded.cpu().detach().numpy()
+        else:
+            return encoded
 
     def decode(self, norm_latent):
         latent = norm_latent.to(self.device) * norm['std']
