@@ -76,23 +76,21 @@ def setup():
 class Autoencoder:
     def __init__(self, num_gpus, rank = 0):
         if rank:
-            self.device = torch.device('cuda', rank)
-        else:
-            self.device = torch.device('cuda:0')
+            device = torch.device('cuda', rank)
+        self.device = device
 
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
         print(f'Creating Autoencoder on rank: {rank}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
-        model.to(self.device)
-        if (num_gpus > 1):
-            if rank:
-                model.encoder = nn.parallel.DistributedDataParallel(model.encoder, device_ids=[self.device], broadcast_buffers=False)
-                model.decoder = nn.parallel.DistributedDataParallel(model.decoder, device_ids=[self.device], broadcast_buffers=False)
-            else:
-                model.encoder = nn.DataParallel(model.encoder, list(range(num_gpus)))
-                model.decoder = nn.DataParallel(model.decoder, list(range(num_gpus)))
-        self.model = model
+
+        modules = [model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
+
+        for module in modules:
+            module.requires_grad_(True)
+            module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
+            module.requires_grad_(False)
+        self._model = model
 
     # batch, channel, width, height, (10, 3, 64, 64) -> (10, 3, 16, 16)
     def shape(self, img_shape):
@@ -105,7 +103,7 @@ class Autoencoder:
         is_tensor = torch.is_tensor(images)
         if not is_tensor:
             images = torch.Tensor(images)
-        latent = self.model.encode(images.to(self.device)).sample()
+        latent = self._model.encode(images.to(self.device)).sample()
         norm_latent = latent / norm['std']
         encoded = torch.clamp(norm_latent, -1., 1.)
         
@@ -118,6 +116,6 @@ class Autoencoder:
     def decode(self, norm_latent):
         assert(len(norm_latent.shape) == 4)
         latent = norm_latent.to(self.device) * norm['std']
-        return self.model.decode(latent)
+        return self._model.decode(latent)
 
 #----------------------------------------------------------------------------
