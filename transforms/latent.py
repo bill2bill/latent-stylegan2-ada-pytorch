@@ -98,7 +98,9 @@ class Autoencoder:
         assert(len(img_shape) == 4)
         return (img_shape[0], img_shape[1], int(img_shape[2] / 4), int(img_shape[3] / 4))
 
+    # batch, channel, width, height
     def encode(self, images):
+        assert(len(images) == 4)
         is_tensor = torch.is_tensor(images)
         if not is_tensor:
             images = torch.Tensor(images)
@@ -111,7 +113,9 @@ class Autoencoder:
         else:
             return encoded
 
+    # batch, channel, width, height
     def decode(self, norm_latent):
+        assert(len(norm_latent) == 4)
         latent = norm_latent.to(self.device) * norm['std']
         return self.model.decode(latent)
 
