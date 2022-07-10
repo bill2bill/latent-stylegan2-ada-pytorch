@@ -109,7 +109,7 @@ class Autoencoder:
         encoded = torch.clamp(norm_latent, -1., 1.)
         
         if not is_tensor:
-            images = encoded.cpu().detach().numpy()
+            return encoded.cpu().detach().numpy()
         else:
             return encoded
 
