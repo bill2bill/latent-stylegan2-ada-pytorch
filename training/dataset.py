@@ -189,7 +189,7 @@ class ImageFolderDataset(Dataset):
 
         name = os.path.splitext(os.path.basename(self._path))[0]
         raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
-        
+
         # remove check if encoded as image size will be different
         if not encode and resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
@@ -237,7 +237,7 @@ class ImageFolderDataset(Dataset):
             image = image[:, :, np.newaxis] # HW => HWC
         image = image.transpose(2, 0, 1) # HWC => CHW
         if self._encode:
-            return self._autoencoder.encode(np.expand_dims(image, 0))
+            return self._autoencoder.encode(np.expand_dims(image, 0))[0]
         return image
 
     def post_process(self, img):
