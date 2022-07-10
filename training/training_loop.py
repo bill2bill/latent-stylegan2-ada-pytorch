@@ -225,6 +225,12 @@ def training_loop(
         save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
         grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
+
+        gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
+        print(gen_z.shape)
+        print(gen_z.min)
+        print(gen_z.max)
+
         images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')) for z, c in zip(grid_z, grid_c)])
         save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
 
