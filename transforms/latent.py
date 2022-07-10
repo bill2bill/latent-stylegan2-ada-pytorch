@@ -74,13 +74,14 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, num_gpus, rank = None):
+    def __init__(self, num_gpus, rank = 0):
         if rank:
             self.device = torch.device('cuda', rank)
         else:
             self.device = torch.device('cuda:0')
 
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
+        print(f'Creating Autoencoder on rank: {rank}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
         model.to(self.device)
