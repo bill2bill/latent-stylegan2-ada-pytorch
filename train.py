@@ -123,6 +123,8 @@ def setup_training_loop_kwargs(
         args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
         args.training_set_kwargs.use_labels = training_set.has_labels # be explicit about labels
         args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
+        args.training_set_kwargs.encode = True
+        args.training_set_kwargs.num_gpus = gpus
         desc = training_set.name
         del training_set # conserve memory
     except IOError as err:

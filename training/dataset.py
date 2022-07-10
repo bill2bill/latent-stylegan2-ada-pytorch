@@ -14,6 +14,8 @@ import json
 import torch
 import dnnlib
 
+from transforms.latent import Autoencoder
+
 try:
     import pyspng
 except ImportError:
@@ -107,6 +109,10 @@ class Dataset(torch.utils.data.Dataset):
         d.raw_label = self._get_raw_labels()[d.raw_idx].copy()
         return d
 
+    def post_process(self, img): # to be overridden by subclass
+        # raise NotImplementedError
+        return img
+
     @property
     def name(self):
         return self._name
@@ -153,12 +159,16 @@ class Dataset(torch.utils.data.Dataset):
 
 class ImageFolderDataset(Dataset):
     def __init__(self,
-        path,                   # Path to directory or zip.
-        resolution      = None, # Ensure specific resolution, None = highest available.
-        **super_kwargs,         # Additional arguments for the Dataset base class.
+        path,                        # Path to directory or zip.
+        resolution = None,           # Ensure specific resolution, None = highest available.
+        encode = False,              # Encode images using autoencoder
+        num_gpus                = 1, # Number of GPUs participating in the training.
+        rank                    = 0, # Rank of the current process in [0, num_gpus[.
+        **super_kwargs,              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._zipfile = None
+        self._encode = encode
 
         if os.path.isdir(self._path):
             self._type = 'dir'
@@ -178,6 +188,12 @@ class ImageFolderDataset(Dataset):
         raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
         if resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
+
+        if encode:
+            autoencoder = Autoencoder(num_gpus, rank)
+            self._autoencoder = autoencoder
+            raw_shape = autoencoder.shape(raw_shape)
+
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)
 
     @staticmethod
@@ -217,7 +233,12 @@ class ImageFolderDataset(Dataset):
         if image.ndim == 2:
             image = image[:, :, np.newaxis] # HW => HWC
         image = image.transpose(2, 0, 1) # HWC => CHW
+        if self._encode:
+            return self._autoencoder.encode(image)
         return image
+
+    def post_process(self, img):
+        return self._autoencoder.decode(img).cpu().numpy()
 
     def _load_raw_labels(self):
         fname = 'dataset.json'

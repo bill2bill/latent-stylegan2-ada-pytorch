@@ -130,9 +130,6 @@ def training_loop(
     torch.backends.cudnn.allow_tf32 = allow_tf32        # Allow PyTorch to internally use tf32 for convolutions
     conv2d_gradfix.enabled = True                       # Improves training speed.
     grid_sample_gradfix.enabled = True                  # Avoids errors with the augmentation pipe.
-    
-
-    autoencoder = Autoencoder(num_gpus, rank)
 
     # Load training set.
     if rank == 0:
@@ -140,13 +137,6 @@ def training_loop(
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
-
-    if rank == 0:
-        print(autoencoder.shape(training_set.image_shape))
-
-    training_set.image_shape = autoencoder.shape(training_set.image_shape)
-    if rank == 0:
-        print(training_set.image_shape)
 
     if rank == 0:
         print()
@@ -235,11 +225,8 @@ def training_loop(
         save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
         grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
-        latent_images = torch.cat([G_ema(z=z, c=c, noise_mode='const') for z, c in zip(grid_z, grid_c)])
-        if autoencoder:
-            images = autoencoder.decode(latent_images).cpu().numpy()
-        else:
-            images = latent_images
+        images = torch.cat([G_ema(z=z, c=c, noise_mode='const') for z, c in zip(grid_z, grid_c)])
+        images = training_set.post_process(images)
         save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
 
     # Initialize logs.
@@ -275,8 +262,6 @@ def training_loop(
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
             phase_real_img = phase_real_img.to(torch.float32).to(device)
-            if autoencoder:
-                phase_real_img = autoencoder.encode(phase_real_img)
             
             #TODO: is this norm needed
             phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
