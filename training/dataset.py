@@ -238,7 +238,10 @@ class ImageFolderDataset(Dataset):
             image = image[:, :, np.newaxis] # HW => HWC
         image = image.transpose(2, 0, 1) # HWC => CHW
         if self._encode:
-            return self._autoencoder.encode(np.expand_dims(image, 0))[0]
+            encoded = self._autoencoder.encode(np.expand_dims(image, 0))
+            print(encoded.shape)
+            print(encoded[0].shape)
+            return encoded[0]
         return image
 
     def post_process(self, img):
