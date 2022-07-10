@@ -190,6 +190,9 @@ class ImageFolderDataset(Dataset):
             raise IOError('Image files do not match the specified resolution')
 
         if encode:
+            print("=" * 10)
+            print("Using Encoder!")
+            print("=" * 10)
             autoencoder = Autoencoder(num_gpus, rank)
             self._autoencoder = autoencoder
             raw_shape = autoencoder.shape(raw_shape)
@@ -238,7 +241,9 @@ class ImageFolderDataset(Dataset):
         return image
 
     def post_process(self, img):
-        return self._autoencoder.decode(img).cpu().numpy()
+        if self._encode:
+            return self._autoencoder.decode(img).cpu().numpy()
+        return img
 
     def _load_raw_labels(self):
         fname = 'dataset.json'
