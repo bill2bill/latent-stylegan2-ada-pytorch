@@ -141,7 +141,12 @@ def training_loop(
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
-    training_set.image_shape = autoencoder.encode(next(training_set_iterator))[0].shape().cpu().detach().tolist()
+    if rank == 0:
+        print(autoencoder.shape(training_set.image_shape))
+
+    training_set.image_shape = autoencoder.shape(training_set.image_shape)
+    if rank == 0:
+        print(training_set.image_shape)
 
     if rank == 0:
         print()
