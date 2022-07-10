@@ -379,7 +379,7 @@ def training_loop(
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
             images = training_set.post_process(gen_z).cpu()
-            save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
+            save_image_batch(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1])
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
