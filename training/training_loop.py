@@ -83,6 +83,22 @@ def save_image_grid(img, fname, drange, grid_size):
     if C == 3:
         PIL.Image.fromarray(img, 'RGB').save(fname)
 
+def save_image_batch(img, fname, drange):
+    lo, hi = drange
+    img = img[0] # Only save first image
+    img = np.asarray(img, dtype=np.float32)
+    img = (img - lo) * (255 / (hi - lo))
+    img = np.rint(img).clip(0, 255).astype(np.uint8)
+
+    # _N, C, H, W = img.shape
+    C, H, W = img.shape
+
+    assert C in [1, 3]
+    if C == 1: #Shouldnt come here
+        PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
+    if C == 3:
+        PIL.Image.fromarray(img, 'RGB').save(fname)
+
 #----------------------------------------------------------------------------
 
 def training_loop(
@@ -226,14 +242,15 @@ def training_loop(
         grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
-        # gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
-        # print(gen_z.shape)
-        # print(gen_z.min())
-        # print(gen_z.max())
-        # images = training_set.post_process(gen_z).cpu().detach().numpy()
+        gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
+        print(gen_z.shape)
+        print(gen_z.min())
+        print(gen_z.max())
+        images = training_set.post_process(gen_z).cpu().detach()
+        save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
 
-        images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu().detach() for z, c in zip([grid_z[0]], [grid_c[0]])])
-        save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
+        # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu().detach() for z, c in zip([grid_z[0]], [grid_c[0]])])
+        # save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
 
     # Initialize logs.
     if rank == 0:
