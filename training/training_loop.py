@@ -23,7 +23,6 @@ from torch_utils.ops import grid_sample_gradfix
 
 import legacy
 from metrics import metric_main
-from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -131,6 +130,10 @@ def training_loop(
     conv2d_gradfix.enabled = True                       # Improves training speed.
     grid_sample_gradfix.enabled = True                  # Avoids errors with the augmentation pipe.
 
+    print("=" * 10)
+    print(f'Rank: {rank}')
+    print("=" * 10)
+    
     # Load training set.
     if rank == 0:
         print('Loading training set...')
