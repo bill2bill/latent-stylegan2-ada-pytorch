@@ -82,6 +82,7 @@ class Autoencoder:
         print(f'Creating Autoencoder on rank: {rank}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
+        model.to(device)
 
         modules = [model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
 
