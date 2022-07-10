@@ -94,23 +94,25 @@ class Autoencoder:
 
     # batch, channel, width, height
     def encode(self, images):
-        assert(len(images.shape) == 4)
-        is_tensor = torch.is_tensor(images)
-        if not is_tensor:
-            images = torch.Tensor(images)
-        latent = self._model.encode(images.to(self.device)).sample()
-        norm_latent = latent / norm['std']
-        encoded = torch.clamp(norm_latent, -1., 1.)
-        
-        if not is_tensor:
-            return encoded.cpu().detach().numpy()
-        else:
-            return encoded
+        with torch.no_grad():
+            assert(len(images.shape) == 4)
+            is_tensor = torch.is_tensor(images)
+            if not is_tensor:
+                images = torch.Tensor(images)
+            latent = self._model.encode(images.to(self.device)).sample()
+            norm_latent = latent / norm['std']
+            encoded = torch.clamp(norm_latent, -1., 1.)
+            
+            if not is_tensor:
+                return encoded.cpu().detach().numpy()
+            else:
+                return encoded
 
     # batch, channel, width, height
     def decode(self, norm_latent):
-        assert(len(norm_latent.shape) == 4)
-        latent = norm_latent.to(self.device) * norm['std']
-        return self._model.decode(latent)
+        with torch.no_grad():
+            assert(len(norm_latent.shape) == 4)
+            latent = norm_latent.to(self.device) * norm['std']
+            return self._model.decode(latent)
 
 #----------------------------------------------------------------------------

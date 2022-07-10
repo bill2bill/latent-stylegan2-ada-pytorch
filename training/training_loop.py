@@ -92,10 +92,11 @@ def save_image_batch(img, fname, drange):
 
     # _N, C, H, W = img.shape
     C, H, W = img.shape
+    print(img.shape)
 
     assert C in [1, 3]
-    if C == 1: #Shouldnt come here
-        PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
+    # if C == 1: #Shouldnt come here
+    #     PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
     if C == 3:
         PIL.Image.fromarray(img, 'RGB').save(fname)
 
@@ -242,15 +243,15 @@ def training_loop(
         grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
-        gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
-        print(gen_z.shape)
-        print(gen_z.min())
-        print(gen_z.max())
-        images = training_set.post_process(gen_z).cpu().detach()
-        save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
+        # gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
+        # print(gen_z.shape)
+        # print(gen_z.min())
+        # print(gen_z.max())
+        # images = training_set.post_process(gen_z).cpu()
+        # save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
 
-        # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu().detach() for z, c in zip([grid_z[0]], [grid_c[0]])])
-        # save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
+        images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip([grid_z[0]], [grid_c[0]])])
+        save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
 
     # Initialize logs.
     if rank == 0:
@@ -377,25 +378,25 @@ def training_loop(
 
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
-            images = torch.cat([G_ema(z=z, c=c, noise_mode='const').cpu() for z, c in zip(grid_z, grid_c)]).numpy()
+            images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
-        # Save network snapshot.
-        snapshot_pkl = None
-        snapshot_data = None
-        if (network_snapshot_ticks is not None) and (done or cur_tick % network_snapshot_ticks == 0):
-            snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
-            for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
-                if module is not None:
-                    if num_gpus > 1:
-                        misc.check_ddp_consistency(module, ignore_regex=r'.*\.w_avg')
-                    module = copy.deepcopy(module).eval().requires_grad_(False).cpu()
-                snapshot_data[name] = module
-                del module # conserve memory
-            snapshot_pkl = os.path.join(run_dir, f'network-snapshot-{cur_nimg//1000:06d}.pkl')
-            if rank == 0:
-                with open(snapshot_pkl, 'wb') as f:
-                    pickle.dump(snapshot_data, f)
+        # # Save network snapshot.
+        # snapshot_pkl = None
+        # snapshot_data = None
+        # if (network_snapshot_ticks is not None) and (done or cur_tick % network_snapshot_ticks == 0):
+        #     snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
+        #     for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
+        #         if module is not None:
+        #             if num_gpus > 1:
+        #                 misc.check_ddp_consistency(module, ignore_regex=r'.*\.w_avg')
+        #             module = copy.deepcopy(module).eval().requires_grad_(False).cpu()
+        #         snapshot_data[name] = module
+        #         del module # conserve memory
+        #     snapshot_pkl = os.path.join(run_dir, f'network-snapshot-{cur_nimg//1000:06d}.pkl')
+        #     if rank == 0:
+        #         with open(snapshot_pkl, 'wb') as f:
+        #             pickle.dump(snapshot_data, f)
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):
