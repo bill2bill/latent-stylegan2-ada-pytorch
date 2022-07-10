@@ -170,12 +170,8 @@ class ImageFolderDataset(Dataset):
         self._zipfile = None
         self._encode = encode
         if encode:
-            print("=" * 10)
-            print("Using Encoder!")
-            print("=" * 10)
             autoencoder = Autoencoder(num_gpus, rank)
             self._autoencoder = autoencoder
-            raw_shape = autoencoder.shape(raw_shape)
 
         if os.path.isdir(self._path):
             self._type = 'dir'
@@ -195,6 +191,9 @@ class ImageFolderDataset(Dataset):
         raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
         if resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
+
+        if encode:
+            raw_shape = autoencoder.shape(raw_shape)
 
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)
 
