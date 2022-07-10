@@ -92,11 +92,6 @@ class Autoencoder:
             module.requires_grad_(False)
         self._model = model
 
-    # batch, channel, width, height, (10, 3, 64, 64) -> (10, 3, 16, 16)
-    def shape(self, img_shape):
-        assert(len(img_shape) == 4)
-        return (img_shape[0], img_shape[1], int(img_shape[2] / 4), int(img_shape[3] / 4))
-
     # batch, channel, width, height
     def encode(self, images):
         assert(len(images.shape) == 4)

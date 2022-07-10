@@ -87,8 +87,6 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = self._load_raw_image(self._raw_idx[idx])
         assert isinstance(image, np.ndarray)
-        print(list(image.shape))
-        print(self.image_shape)
         assert list(image.shape) == self.image_shape
         assert image.dtype == np.uint8
         if self._xflip[idx]:
@@ -196,9 +194,6 @@ class ImageFolderDataset(Dataset):
         # remove check if encoded as image size will be different
         if not encode and resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
-
-        if encode:
-            raw_shape = autoencoder.shape(raw_shape)
 
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)
 
