@@ -93,9 +93,10 @@ class Autoencoder:
                 model.decoder = nn.DataParallel(model.decoder, list(range(num_gpus)))
         self.model = model
 
-    # batch, density, width, height, (1, 3, 64, 64) -> (1, 3, 16, 16)
+    # channel, width, height, (3, 64, 64) -> (3, 16, 16)
     def shape(self, img_shape):
-        return (img_shape[0], img_shape[1], int(img_shape[2] / 4), int(img_shape[3] / 4))
+        assert(len(img_shape) == 3)
+        return (img_shape[0], int(img_shape[0] / 4), int(img_shape[0] / 4))
 
     def encode(self, images):
         latent = self.model.encode(images.to(self.device)).sample()
