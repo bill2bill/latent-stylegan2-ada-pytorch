@@ -75,8 +75,7 @@ def setup():
 
 class Autoencoder:
     def __init__(self, num_gpus, rank = 0):
-        if rank:
-            device = torch.device('cuda', rank)
+        device = torch.device('cuda', rank)
         self.device = device
 
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
