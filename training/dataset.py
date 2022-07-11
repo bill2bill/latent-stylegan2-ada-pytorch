@@ -167,12 +167,11 @@ class ImageFolderDataset(Dataset):
         rank                    = 0, # Rank of the current process in [0, num_gpus[.
         **super_kwargs,              # Additional arguments for the Dataset base class.
     ):
-        print(f"Creating image dataset with rank: {rank}")
         self._path = path
         self._zipfile = None
         self._encode = encode
         if encode:
-            autoencoder = Autoencoder(num_gpus, rank)
+            autoencoder = Autoencoder(rank)
             self._autoencoder = autoencoder
 
         if os.path.isdir(self._path):

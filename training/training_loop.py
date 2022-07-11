@@ -85,16 +85,19 @@ def save_image_grid(img, fname, drange, grid_size):
 
 def save_image_batch(img, fname, drange):
     lo, hi = drange
-    img = img[0].permute(1, 2, 0) # Only save first image
-    img = np.asarray(img, dtype=np.float32)
-    img = (img - lo) * (255 / (hi - lo))
-    img = np.rint(img).clip(0, 255).astype(np.uint8)
+    img = img[0]# Only save first image
+
+    img = torch.clamp(img, -1., 1.)
+    img = (img + 1.) / 2.
+    img = img.permute(1, 2, 0).numpy()
+    img = (255 * img).astype(np.uint8)
+
+    # img = np.asarray(img, dtype=np.float32)
+    # img = (img - lo) * (255 / (hi - lo))
+    # img = np.rint(img).clip(0, 255).astype(np.uint8)
 
     # _N, C, H, W = img.shape
     H, W, C = img.shape
-    print(img.shape)
-    print(img.min())
-    print(img.max())
 
     assert C in [1, 3]
     # if C == 1: #Shouldnt come here

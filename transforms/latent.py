@@ -74,7 +74,7 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, num_gpus, rank = 0):
+    def __init__(self, rank = 0):
         device = torch.device('cuda', rank)
         self.device = device
 
