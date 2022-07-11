@@ -86,15 +86,19 @@ def save_image_grid(img, fname, drange, grid_size):
 def save_image_batch(img, fname, drange):
     lo, hi = drange
     img = img[0]# Only save first image
+    print(img.shape)
+    print(img.min())
+    print(img.max())
 
-    img = torch.clamp(img, -1., 1.)
-    img = (img + 1.) / 2.
-    img = img.permute(1, 2, 0).numpy()
-    img = (255 * img).astype(np.uint8)
+    # img = torch.clamp(img, -1., 1.)
+    # img = (img + 1.) / 2.
+    # img = img.permute(1, 2, 0).numpy()
+    # img = (255 * img).astype(np.uint8)
 
-    # img = np.asarray(img, dtype=np.float32)
-    # img = (img - lo) * (255 / (hi - lo))
-    # img = np.rint(img).clip(0, 255).astype(np.uint8)
+    img = img.permute(1, 2, 0)
+    img = np.asarray(img, dtype=np.float32)
+    img = (img - lo) * (255 / (hi - lo))
+    img = np.rint(img).clip(0, 255).astype(np.uint8)
 
     # _N, C, H, W = img.shape
     H, W, C = img.shape
@@ -246,7 +250,6 @@ def training_loop(
             print('Exporting sample images...')
             grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
             # save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
-            print(labels)
             grid_z = torch.randn([1, G.z_dim], device=device).split(batch_gpu)
             grid_c = torch.from_numpy(labels[0]).to(device).split(batch_gpu)
             # grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
