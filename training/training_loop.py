@@ -246,11 +246,14 @@ def training_loop(
             print('Exporting sample images...')
             grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
             # save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
-            grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
-            grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
+            print(labels)
+            grid_z = torch.randn([1, G.z_dim], device=device).split(batch_gpu)
+            grid_c = torch.from_numpy(labels[0]).to(device).split(batch_gpu)
+            # grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
+            # grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
             gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
-            images = training_set.post_process(gen_z).cpu().detach()
+            images = training_set.post_process(gen_z).cpu()
             save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
             del gen_z, images
 
