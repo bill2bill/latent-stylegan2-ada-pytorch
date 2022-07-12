@@ -35,6 +35,7 @@ def setup_training_loop_kwargs(
     # General options (not included in desc).
     gpus       = None, # Number of GPUs: <int>, default = 1 gpu
     snap       = None, # Snapshot interval: <int>, default = 50 ticks
+    encode     = False, # Encode images: <bool>, default = false
     metrics    = None, # List of metric names: [], ['fid50k_full'] (default), ...
     seed       = None, # Random seed: <int>, default = 0
 
@@ -123,7 +124,7 @@ def setup_training_loop_kwargs(
         args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
         args.training_set_kwargs.use_labels = training_set.has_labels # be explicit about labels
         args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
-        args.training_set_kwargs.encode = True
+        args.training_set_kwargs.encode = encode
         args.training_set_kwargs.num_gpus = gpus
         desc = training_set.name
         del training_set # conserve memory
@@ -416,6 +417,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--outdir', help='Where to save the results', required=True, metavar='DIR')
 @click.option('--gpus', help='Number of GPUs to use [default: 1]', type=int, metavar='INT')
 @click.option('--snap', help='Snapshot interval [default: 50 ticks]', type=int, metavar='INT')
+@click.option('--encode', help='Encode and decode images using AE [default: false]', type=bool, metavar='BOOL')
 @click.option('--metrics', help='Comma-separated list or "none" [default: fid50k_full]', type=CommaSeparatedList())
 @click.option('--seed', help='Random seed [default: 0]', type=int, metavar='INT')
 @click.option('-n', '--dry-run', help='Print training options and exit', is_flag=True)

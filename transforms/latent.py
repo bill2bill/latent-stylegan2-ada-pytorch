@@ -39,7 +39,7 @@ CACHE_MODEL_DIR = 'pretrained_models'
 
 norm = {
     "mean": 0,
-    "std": 80,
+    "std": 65,
 }
 
 #----------------------------------------------------------------------------
@@ -102,6 +102,8 @@ class Autoencoder:
             latent = self._model.encode(images.to(self.device)).sample()
             norm_latent = latent / norm['std']
             encoded = torch.clamp(norm_latent, -1., 1.)
+            #convert to range 0 - 1
+            encoded = (encoded + 1) / 2
             
             if not is_tensor:
                 return encoded.cpu().detach().numpy()

@@ -255,9 +255,12 @@ def training_loop(
             # grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
             # grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
-            gen_z = G_ema(z=grid_z[0], c=grid_c[0], noise_mode='const')
-            images = training_set.post_process(gen_z).cpu()
-            save_image_batch(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
+            label = torch.zeros([1, G.c_dim], device=device)
+            z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
+            latent_img = G_ema(z, label, noise_mode='const')
+
+            img = training_set.post_process(latent_img).cpu()
+            save_image_batch(img, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
             del gen_z, images
 
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)])
@@ -299,7 +302,7 @@ def training_loop(
             
             #TODO: is this norm needed
             phase_real_img = phase_real_img.split(batch_gpu)
-            # Ignore weird normalising for now
+            # Converts to a 0 - 1 range instaed of 0 - 255
             # phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
