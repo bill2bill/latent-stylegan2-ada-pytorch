@@ -39,7 +39,7 @@ CACHE_MODEL_DIR = 'pretrained_models'
 
 norm = {
     "mean": 0,
-    "std": 65,
+    "std": 70,
 }
 
 #----------------------------------------------------------------------------
@@ -96,29 +96,14 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            print("=" * 10)
-            print("pre encode")
-            print(images.shape)
-            print(images.min())
-            print(images.max())
             is_tensor = torch.is_tensor(images)
             if not is_tensor:
                 images = torch.Tensor(images)
             latent = self._model.encode(images.to(self.device)).sample()
-            print("=" * 10)
-            print("latent after encode")
-            print(latent.shape)
-            print(latent.min())
-            print(latent.max())
             norm_latent = latent / norm['std']
             encoded = torch.clamp(norm_latent, -1., 1.)
             #convert to range 0 - 1
             encoded = (encoded + 1) / 2
-            print("=" * 10)
-            print("latent after norm")
-            print(encoded.shape)
-            print(encoded.min())
-            print(encoded.max())
             
             if not is_tensor:
                 return encoded.cpu().detach().numpy()
