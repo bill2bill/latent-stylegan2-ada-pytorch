@@ -520,6 +520,7 @@ def main(ctx, outdir, dry_run, **config_kwargs):
     print()
     print(f'Output directory:   {args.run_dir}')
     print(f'Training data:      {args.training_set_kwargs.path}')
+    print(f'Encode data:        {args.training_set_kwargs.encode}')
     print(f'Training duration:  {args.total_kimg} kimg')
     print(f'Number of GPUs:     {args.num_gpus}')
     print(f'Number of images:   {args.training_set_kwargs.max_size}')
