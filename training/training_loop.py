@@ -86,6 +86,8 @@ def save_image_grid(img, fname, drange, grid_size):
 def save_image_batch(img, fname, drange):
     lo, hi = drange
     img = img[0]# Only save first image
+    print("=" * 10)
+    print("save batch")
     print(img.shape)
     print(img.min())
     print(img.max())
