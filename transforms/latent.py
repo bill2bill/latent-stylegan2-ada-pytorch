@@ -119,7 +119,8 @@ class Autoencoder:
             print(norm_latent.shape)
             print(norm_latent.min())
             print(norm_latent.max())
-            # norm_latent = (norm_latent - 1) * 2
+
+            norm_latent = (norm_latent - 1) * 2
             latent = norm_latent.to(self.device) * norm['std']
             decoded = self._model.decode(latent)
             print("=" * 10)
