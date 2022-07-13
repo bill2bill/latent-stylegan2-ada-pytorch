@@ -88,9 +88,6 @@ def save_image_batch(img, fname, drange):
     img = img[0]# Only save first image
     print("=" * 10)
     print("save batch")
-    print(img.shape)
-    print(img.min())
-    print(img.max())
 
     # img = torch.clamp(img, -1., 1.)
     # img = (img + 1.) / 2.
