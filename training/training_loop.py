@@ -110,6 +110,7 @@ def save_image_batch(img, fname, drange):
 #----------------------------------------------------------------------------
 
 def training_loop(
+    encode                  = False,
     run_dir                 = '.',      # Output directory.
     training_set_kwargs     = {},       # Options for training set.
     data_loader_kwargs      = {},       # Options for torch.utils.data.DataLoader.
@@ -157,10 +158,10 @@ def training_loop(
     # Load training set.
     if rank == 0:
         print('Loading training set...')
-    training_set_kwargs.rank = rank
+    # training_set_kwargs.rank = rank
 
     autoencoder = None
-    if training_set_kwargs.encode:
+    if encode:
         autoencoder = Autoencoder(rank)
 
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, ae = autoencoder) # subclass of training.dataset.Dataset
@@ -168,7 +169,7 @@ def training_loop(
 
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
-    if training_set_kwargs.encode:
+    if encode:
         class IterableWrapper:
             def __init__(self, iterable, ae):
                 self.ae = ae
@@ -182,7 +183,7 @@ def training_loop(
             def __next__(self):
                 return self.ae.encode(next(self.iterator))
 
-        training_set_iterator = IterableWrapper(training_set_iterator)
+        training_set_iterator = IterableWrapper(training_set_iterator, autoencoder)
 
     if rank == 0:
         print()

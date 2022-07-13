@@ -162,21 +162,12 @@ class ImageFolderDataset(Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
         resolution = None,           # Ensure specific resolution, None = highest available.
-        encode = False,              # Encode images using autoencoder
-        num_gpus                = 1, # Number of GPUs participating in the training.
-        rank                    = 0, # Rank of the current process in [0, num_gpus[.
         ae = None,
         **super_kwargs,              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._zipfile = None
-        self._encode = encode
-        print(super_kwargs)
-        print(ae)
-        # self._ae = super_kwargs.ae
-        # if encode:
-        #     autoencoder = Autoencoder(rank)
-        #     self._autoencoder = autoencoder
+        self._ae = ae
 
         if os.path.isdir(self._path):
             self._type = 'dir'
@@ -193,10 +184,15 @@ class ImageFolderDataset(Dataset):
             raise IOError('No image files found in the specified path')
 
         name = os.path.splitext(os.path.basename(self._path))[0]
-        raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
+
+        raw_image = self._load_raw_image(0)
+        if ae:
+            raw_image = ae.encode(np.expand_dims(raw_image, 0))[0]
+
+        raw_shape = [len(self._image_fnames)] + list(raw_image.shape)
 
         # remove check if encoded as image size will be different
-        if not encode and resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
+        if resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
 
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)
@@ -237,17 +233,10 @@ class ImageFolderDataset(Dataset):
                 image = np.array(PIL.Image.open(f))
         if image.ndim == 2:
             image = image[:, :, np.newaxis] # HW => HWC
-        image = image.transpose(2, 0, 1) # HWC => CHW
-        if self._encode:
-            return self._autoencoder.encode(np.expand_dims(image, 0))[0]
-        return image
-
-    def ae(self, ae):
-        self._ae = ae
-        self._raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
+        return image.transpose(2, 0, 1) # HWC => CHW
 
     def post_process(self, img):
-        if self._encode:
+        if self._ae:
             return self._ae.decode(img)
         return img
 
