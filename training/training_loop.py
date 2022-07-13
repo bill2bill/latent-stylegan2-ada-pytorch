@@ -194,7 +194,7 @@ def training_loop(
         def encode(img):
             return autoencoder.encode(img)
 
-        training_set_iterator = Map(training_set_iterator, encode)
+        training_set_iterator = iter(Map(training_set_iterator, encode))
 
     if rank == 0:
         print()
