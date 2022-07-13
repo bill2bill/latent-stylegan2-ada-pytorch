@@ -51,6 +51,7 @@ class StyleGAN2Loss(Loss):
         if self.augment_pipe is not None:
             img = self.augment_pipe(img)
         with misc.ddp_sync(self.D, sync):
+            print(img.max(), img.min())
             logits = self.D(img, c)
         return logits
 
