@@ -99,11 +99,11 @@ class Autoencoder:
             is_tensor = torch.is_tensor(images)
             if not is_tensor:
                 images = torch.Tensor(images)
-            latent = self._model.encode(images.to(self.device)).sample()
-            norm_latent = latent / norm['std']
-            encoded = torch.clamp(norm_latent, -1., 1.)
-            #convert to range 0 - 1
-            encoded = (encoded + 1) / 2
+            encoded = self._model.encode(images.to(self.device)).sample()
+            # norm_latent = latent / norm['std']
+            # encoded = torch.clamp(norm_latent, -1., 1.)
+            # #convert to range 0 - 1
+            # encoded = (encoded + 1) / 2
             
             if not is_tensor:
                 return encoded.cpu().detach().numpy()
@@ -114,20 +114,11 @@ class Autoencoder:
     def decode(self, norm_latent):
         with torch.no_grad():
             assert(len(norm_latent.shape) == 4)
-            print("=" * 10)
-            print("latent from gen")
-            print(norm_latent.shape)
-            print(norm_latent.min())
-            print(norm_latent.max())
 
-            norm_latent = (norm_latent - 1) * 2
-            latent = norm_latent.to(self.device) * norm['std']
-            decoded = self._model.decode(latent)
-            print("=" * 10)
-            print("decoded")
-            print(decoded.shape)
-            print(decoded.min())
-            print(decoded.max())
+            # norm_latent = (norm_latent - 1) * 2
+            # latent = norm_latent.to(self.device) * norm['std']
+            latent = norm_latent
+            decoded = self._model.decode(latent.to(self.device))
 
             return decoded
 
