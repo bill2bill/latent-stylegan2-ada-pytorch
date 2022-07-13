@@ -168,8 +168,6 @@ def training_loop(
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
 
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
-    if rank == 0:
-            print(next(training_set_iterator))
     if encode:
         # class IterableWrapper:
         #     def __init__(self, iterable, ae):
@@ -198,7 +196,6 @@ def training_loop(
         training_set_iterator = iter(Map(training_set_iterator, encode))
 
     if rank == 0:
-        print(next(training_set_iterator))
         print()
         print('Num images: ', len(training_set))
         print('Image shape:', training_set.image_shape)
