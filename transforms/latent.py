@@ -98,20 +98,16 @@ class Autoencoder:
             # assert(len(images.shape) == 5)
             is_tensor = torch.is_tensor(images)
             if not is_tensor:
-                images = torch.FloatTensor(images).to(self.device)
+                images = torch.FloatTensor(images)
             else:
                 images = images.type(torch.FloatTensor)
-            encoded = self._model.encode(images).sample()
+            encoded = self._model.encode(images.to(self.device)).sample()
             # norm_latent = latent / norm['std']
             # encoded = torch.clamp(norm_latent, -1., 1.)
             # #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             del images
-            
-            if not is_tensor:
-                return encoded.cpu().detach().numpy()
-            else:
-                return encoded
+            return encoded.cpu().detach().numpy()
 
     # batch, channel, width, height
     def decode(self, norm_latent):
