@@ -163,7 +163,7 @@ def training_loop(
     if training_set.encode:
         autoencoder = Autoencoder(rank)
 
-    training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, autoencoder) # subclass of training.dataset.Dataset
+    training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, ae=autoencoder) # subclass of training.dataset.Dataset
     if training_set.encode:
         training_set.ae(autoencoder)
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)

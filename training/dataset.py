@@ -170,6 +170,7 @@ class ImageFolderDataset(Dataset):
         self._path = path
         self._zipfile = None
         self._encode = encode
+        self._ae = super_kwargs.ae
         print(super_kwargs)
         # if encode:
         #     autoencoder = Autoencoder(rank)
