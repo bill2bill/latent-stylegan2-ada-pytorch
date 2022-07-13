@@ -192,7 +192,7 @@ class ImageFolderDataset(Dataset):
         raw_shape = [len(self._image_fnames)] + list(raw_image.shape)
 
         # remove check if encoded as image size will be different
-        if resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
+        if self._ae is None and resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
 
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)
