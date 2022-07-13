@@ -13,7 +13,7 @@ DEFAULT_AE_CONFIG = {
     "ddconfig": {
         "double_z": True,
         "z_channels": 3,
-        "resolution": 64,
+        "resolution": 256,
         "in_channels": 3,
         "out_ch": 3,
         "ch": 128,
