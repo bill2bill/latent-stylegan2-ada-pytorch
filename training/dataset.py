@@ -170,9 +170,10 @@ class ImageFolderDataset(Dataset):
         self._path = path
         self._zipfile = None
         self._encode = encode
-        if encode:
-            autoencoder = Autoencoder(rank)
-            self._autoencoder = autoencoder
+        print(super_kwargs)
+        # if encode:
+        #     autoencoder = Autoencoder(rank)
+        #     self._autoencoder = autoencoder
 
         if os.path.isdir(self._path):
             self._type = 'dir'
@@ -238,9 +239,13 @@ class ImageFolderDataset(Dataset):
             return self._autoencoder.encode(np.expand_dims(image, 0))[0]
         return image
 
+    def ae(self, ae):
+        self._ae = ae
+        self._raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
+
     def post_process(self, img):
         if self._encode:
-            return self._autoencoder.decode(img)
+            return self._ae.decode(img)
         return img
 
     def _load_raw_labels(self):

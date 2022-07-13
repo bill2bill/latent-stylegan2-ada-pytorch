@@ -23,6 +23,7 @@ from torch_utils.ops import grid_sample_gradfix
 
 import legacy
 from metrics import metric_main
+from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -86,8 +87,6 @@ def save_image_grid(img, fname, drange, grid_size):
 def save_image_batch(img, fname, drange):
     lo, hi = drange
     img = img[0]# Only save first image
-    print("=" * 10)
-    print("save batch")
 
     # img = torch.clamp(img, -1., 1.)
     # img = (img + 1.) / 2.
@@ -159,9 +158,33 @@ def training_loop(
     if rank == 0:
         print('Loading training set...')
     training_set_kwargs.rank = rank
-    training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
+
+    autoencoder = None
+    if training_set.encode:
+        autoencoder = Autoencoder(rank)
+
+    training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, autoencoder) # subclass of training.dataset.Dataset
+    if training_set.encode:
+        training_set.ae(autoencoder)
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
+
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
+
+    if training_set.encode:
+        class IterableWrapper:
+            def __init__(self, iterable, ae):
+                self.ae = ae
+                self.iterable = iterable
+                self.iterator = None
+
+            def __iter__(self):
+                self.iterator = iter(self.iterable)
+                return self
+
+            def __next__(self):
+                return self.ae.encode(next(self.iterator))
+
+        training_set_iterator = IterableWrapper(training_set_iterator)
 
     if rank == 0:
         print()
@@ -300,9 +323,9 @@ def training_loop(
             phase_real_img = phase_real_img.to(torch.float32).to(device)
             
             #TODO: is this norm needed
-            phase_real_img = phase_real_img.split(batch_gpu)
+            # phase_real_img = phase_real_img.split(batch_gpu)
             # Converts to a 0 - 1 range instaed of 0 - 255
-            # phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
+            phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
