@@ -180,6 +180,7 @@ def training_loop(
         def encode(elem):
             img, labels = elem
             encoded = autoencoder.encode(img)
+            del img
             return encoded, labels
 
         training_set_iterator = iter(Map(training_set_iterator, encode))
