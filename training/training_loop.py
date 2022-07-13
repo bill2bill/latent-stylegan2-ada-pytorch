@@ -160,17 +160,15 @@ def training_loop(
     training_set_kwargs.rank = rank
 
     autoencoder = None
-    if training_set.encode:
+    if training_set_kwargs.encode:
         autoencoder = Autoencoder(rank)
 
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, ae = autoencoder) # subclass of training.dataset.Dataset
-    if training_set.encode:
-        training_set.ae(autoencoder)
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
 
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
-    if training_set.encode:
+    if training_set_kwargs.encode:
         class IterableWrapper:
             def __init__(self, iterable, ae):
                 self.ae = ae
