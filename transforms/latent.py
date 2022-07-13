@@ -97,8 +97,7 @@ class Autoencoder:
         with torch.no_grad():
             # assert(len(images.shape) == 5)
             is_tensor = torch.is_tensor(images)
-            if not is_tensor:
-                images = torch.Tensor(images)
+            images = torch.FloatTensor(images)
             encoded = self._model.encode(images.to(self.device)).sample()
             # norm_latent = latent / norm['std']
             # encoded = torch.clamp(norm_latent, -1., 1.)
