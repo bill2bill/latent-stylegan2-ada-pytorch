@@ -87,7 +87,8 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = self._load_raw_image(self._raw_idx[idx])
         assert isinstance(image, np.ndarray)
-        assert list(image.shape) == self.image_shape
+        # The images loaded are not encoded yet so different shape
+        # assert list(image.shape) == self.image_shape
         # this check is valid for data in range of 0 - 255 but encoder converts to -1 to 1
         # assert image.dtype == np.uint8
         if self._xflip[idx]:
