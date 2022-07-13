@@ -175,12 +175,12 @@ def training_loop(
                 self.f = f
 
             def __iter__(self):
-                img, labels = self.iterable
-                encoded = map(self.f, img)
-                return encoded, labels
+                return map(self.f, self.iterable)
 
-        def encode(img):
-            return autoencoder.encode(img)
+        def encode(elem):
+            img, labels = elem
+            encoded = autoencoder.encode(img)
+            return encoded, labels
 
         training_set_iterator = iter(Map(training_set_iterator, encode))
 
