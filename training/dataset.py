@@ -165,13 +165,15 @@ class ImageFolderDataset(Dataset):
         encode = False,              # Encode images using autoencoder
         num_gpus                = 1, # Number of GPUs participating in the training.
         rank                    = 0, # Rank of the current process in [0, num_gpus[.
+        ae = None,
         **super_kwargs,              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._zipfile = None
         self._encode = encode
-        self._ae = super_kwargs.ae
         print(super_kwargs)
+        print(ae)
+        # self._ae = super_kwargs.ae
         # if encode:
         #     autoencoder = Autoencoder(rank)
         #     self._autoencoder = autoencoder
