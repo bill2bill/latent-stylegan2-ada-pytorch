@@ -170,20 +170,31 @@ def training_loop(
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
     if encode:
-        class IterableWrapper:
-            def __init__(self, iterable, ae):
-                self.ae = ae
+        # class IterableWrapper:
+        #     def __init__(self, iterable, ae):
+        #         self.ae = ae
+        #         self.iterable = iterable
+        #         self.iterator = None
+
+        #     def __iter__(self):
+        #         self.iterator = iter(self.iterable)
+        #         return self
+
+        #     def __next__(self):
+        #         return self.ae.encode(next(self.iterator))
+
+        class Map:
+            def __init__(self, iterable, f):
                 self.iterable = iterable
-                self.iterator = None
+                self.f = f
 
             def __iter__(self):
-                self.iterator = iter(self.iterable)
-                return self
+                return map(self.f, self.iterable)
 
-            def __next__(self):
-                return self.ae.encode(next(self.iterator))
+        def encode(img):
+            return autoencoder.encode(img)
 
-        training_set_iterator = IterableWrapper(training_set_iterator, autoencoder)
+        training_set_iterator = Map(training_set_iterator, encode)
 
     if rank == 0:
         print()
