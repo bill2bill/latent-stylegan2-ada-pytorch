@@ -114,16 +114,12 @@ class Autoencoder:
             # encoded = (encoded + 1) / 2
             del images
 
-            print("--------")
-            print(encoded.device)
-            print(is_tensor)
-            print(same_device)
-
             if is_tensor:
                 if same_device:
                     return encoded
                 else:
                     return encoded.to(tensor_device)
+
             else:
                 return encoded.cpu().detach().numpy()
 

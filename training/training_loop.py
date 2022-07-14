@@ -184,10 +184,8 @@ def training_loop(
             def __next__(self):
                 img, labels = next(self.iterator)
                 img = img.to(self.device)
-                print(img.device)
                 encoded = autoencoder.encode(img)
                 del img
-                print(encoded.device)
                 return encoded, labels
 
         training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
@@ -326,6 +324,7 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
+            print(phase_real_img.device)
             # phase_real_img = phase_real_img.to(torch.float32)
             # phase_real_img = phase_real_img.to(torch.float32).to(device)
             
