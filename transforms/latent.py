@@ -96,16 +96,13 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(images.shape) == 4)
             is_tensor = torch.is_tensor(images)
-            print("---------------")
+            tensor_device = 'cpu'
             if is_tensor:
-                print(images.device)
-            if is_tensor:
-                images = images.type(torch.FloatTensor)
+                tensor_device = images.device
+                images = images.type(torch.FloatTensor).to(tensor_device)
             else:
                 images = torch.FloatTensor(images)
-            print(images.device)
-
-            tensor_device = images.device
+            
             same_device = tensor_device == self.device
 
             if not same_device:
