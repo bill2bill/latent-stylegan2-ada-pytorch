@@ -96,53 +96,55 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            is_tensor = torch.is_tensor(images)
-            tensor_device = 'cpu'
-            if is_tensor:
-                tensor_device = images.device
-                images = images.type(torch.HalfTensor).to(tensor_device)
-                # images = images.to(torch.float16).to(tensor_device)
-            else:
-                images = torch.HalfTensor(images)
+            return self._model.encode(images).sample()
+            # is_tensor = torch.is_tensor(images)
+            # tensor_device = 'cpu'
+            # if is_tensor:
+            #     tensor_device = images.device
+            #     images = images.type(torch.HalfTensor).to(tensor_device)
+            #     # images = images.to(torch.float16).to(tensor_device)
+            # else:
+            #     images = torch.HalfTensor(images)
             
-            same_device = tensor_device == self.device
+            # same_device = tensor_device == self.device
 
-            if not same_device:
-                images = images.to(self.device)
+            # if not same_device:
+            #     images = images.to(self.device)
 
-            encoded = self._model.encode(images).sample()
-            encoded = encoded / norm['std']
-            encoded = torch.clamp(encoded, -1., 1.)
-            #convert to range 0 - 1
-            encoded = (encoded + 1) / 2
+            # encoded = self._model.encode(images).sample()
+            # encoded = encoded / norm['std']
+            # encoded = torch.clamp(encoded, -1., 1.)
+            # #convert to range 0 - 1
+            # encoded = (encoded + 1) / 2
             
-            del images
-            torch.cuda.empty_cache()
+            # del images
+            # torch.cuda.empty_cache()
 
-            if is_tensor:
-                if same_device:
-                    return encoded
-                else:
-                    return encoded.to(tensor_device)
+            # if is_tensor:
+            #     if same_device:
+            #         return encoded
+            #     else:
+            #         return encoded.to(tensor_device)
 
-            else:
-                return encoded.cpu().detach().numpy()
+            # else:
+            #     return encoded.cpu().detach().numpy()
 
     # batch, channel, width, height
-    def decode(self, norm_latent):
+    def decode(self, latent):
         with torch.no_grad():
-            assert(len(norm_latent.shape) == 4)
-            tensor_device = norm_latent.device
-            norm_latent = norm_latent.type(torch.HalfTensor).to(tensor_device)
+            assert(len(latent.shape) == 4)
+            return self._model.decode(latent)
+            # tensor_device = norm_latent.device
+            # norm_latent = norm_latent.type(torch.HalfTensor).to(tensor_device)
 
-            # norm_latent = (norm_latent - 1) * 2
-            # latent = norm_latent.to(self.device) * norm['std']
-            latent = norm_latent
-            decoded = self._model.decode(latent.to(self.device))
+            # # norm_latent = (norm_latent - 1) * 2
+            # # latent = norm_latent.to(self.device) * norm['std']
+            # latent = norm_latent
+            # decoded = self._model.decode(latent.to(self.device))
             
-            del latent
-            torch.cuda.empty_cache()
+            # del latent
+            # torch.cuda.empty_cache()
 
-            return decoded
+            # return decoded
 
 #----------------------------------------------------------------------------

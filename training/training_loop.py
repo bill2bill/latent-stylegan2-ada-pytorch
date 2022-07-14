@@ -183,7 +183,7 @@ def training_loop(
 
             def __next__(self):
                 img, labels = next(self.iterator)
-                img = img.to(self.device)
+                img = torch.HalfTensor(img, device=device)
                 encoded = autoencoder.encode(img)
                 del img
                 return encoded, labels
