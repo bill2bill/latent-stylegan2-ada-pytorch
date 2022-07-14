@@ -84,7 +84,7 @@ class Autoencoder:
         model = model.half()
         model.to(device)
 
-        # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
+        # modules = [model, mod el.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
         modules = [model]
 
         for module in modules:
@@ -132,6 +132,8 @@ class Autoencoder:
     def decode(self, norm_latent):
         with torch.no_grad():
             assert(len(norm_latent.shape) == 4)
+            tensor_device = norm_latent.device
+            norm_latent = norm_latent.type(torch.HalfTensor).to(tensor_device)
 
             # norm_latent = (norm_latent - 1) * 2
             # latent = norm_latent.to(self.device) * norm['std']
