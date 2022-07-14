@@ -92,8 +92,9 @@ class Autoencoder:
             module.requires_grad_(False)
         self._model = model
         print(model.device)
-        print(model.encoder.device)
-        print(model.decoder.device)
+
+        print(next(model.encoder.parameters()).device)
+        print(next(model.decoder.parameters()).device)
 
     # batch, channel, width, height
     def encode(self, images):
