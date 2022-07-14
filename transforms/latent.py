@@ -84,8 +84,8 @@ class Autoencoder:
         model = model.half()
         model.to(device)
 
-        # modules = [model, mod el.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
-        modules = [model]
+        modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss, model.quantize]
+        # modules = [model]
 
         for module in modules:
             module.requires_grad_(True)
