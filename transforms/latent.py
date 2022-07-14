@@ -101,10 +101,10 @@ class Autoencoder:
             tensor_device = 'cpu'
             if is_tensor:
                 tensor_device = images.device
-                # images = images.type(torch.FloatTensor).to(tensor_device)
-                images = images.to(torch.float16).to(tensor_device)
+                images = images.type(torch.HalfTensor).to(tensor_device)
+                # images = images.to(torch.float16).to(tensor_device)
             else:
-                images = torch.FloatTensor(images).to(torch.float16)
+                images = torch.HalfTensor(images)
             
             same_device = tensor_device == self.device
 
