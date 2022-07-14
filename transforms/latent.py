@@ -112,10 +112,11 @@ class Autoencoder:
                 images = images.to(self.device)
 
             encoded = self._model.encode(images).sample()
-            # norm_latent = latent / norm['std']
-            # encoded = torch.clamp(norm_latent, -1., 1.)
-            # #convert to range 0 - 1
-            # encoded = (encoded + 1) / 2
+            encoded = encoded / norm['std']
+            encoded = torch.clamp(encoded, -1., 1.)
+            #convert to range 0 - 1
+            encoded = (encoded + 1) / 2
+            
             del images
             torch.cuda.empty_cache()
 
