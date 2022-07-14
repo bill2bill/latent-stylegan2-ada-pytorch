@@ -101,14 +101,24 @@ class Autoencoder:
                 images = images.type(torch.FloatTensor)
             else:
                 images = torch.FloatTensor(images)
-            encoded = self._model.encode(images.to(self.device)).sample()
+
+            tensor_device = images.device
+            same_device = tensor_device != self.device
+
+            if not same_device:
+                images = images.to(self.device)
+
+            encoded = self._model.encode(images).sample()
             # norm_latent = latent / norm['std']
             # encoded = torch.clamp(norm_latent, -1., 1.)
             # #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             del images
             if is_tensor:
-                return encoded.cpu().detach()
+                if same_device:
+                    return encoded
+                else:
+                    return encoded.to(tensor_device)
             else:
                 return encoded.cpu().detach().numpy()
 

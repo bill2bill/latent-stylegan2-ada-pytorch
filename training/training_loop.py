@@ -186,20 +186,6 @@ def training_loop(
                 del img
                 return encoded, labels
 
-        # class Map:
-        #     def __init__(self, iterable, f):
-        #         self.iterable = iterable
-        #         self.f = f
-
-        #     def __iter__(self):
-        #         return map(self.f, self.iterable)
-
-        # def encode(elem):
-        #     img, labels = elem
-        #     encoded = autoencoder.encode(img)
-        #     del img
-        #     return encoded, labels
-
         training_set_iterator = Wrapper(training_set_iterator, autoencoder)
 
     if rank == 0:
