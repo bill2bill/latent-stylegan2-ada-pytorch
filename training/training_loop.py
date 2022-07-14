@@ -213,12 +213,12 @@ def training_loop(
         for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
             misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
 
-    # Print network summary tables.
-    if rank == 0:
-        z = torch.empty([batch_gpu, G.z_dim], device=device)
-        c = torch.empty([batch_gpu, G.c_dim], device=device)
-        img = misc.print_module_summary(G, [z, c])
-        misc.print_module_summary(D, [img, c])
+    # # Print network summary tables.
+    # if rank == 0:
+    #     z = torch.empty([batch_gpu, G.z_dim], device=device)
+    #     c = torch.empty([batch_gpu, G.c_dim], device=device)
+    #     img = misc.print_module_summary(G, [z, c])
+    #     misc.print_module_summary(D, [img, c])
 
     # Setup augmentation.
     if rank == 0:
