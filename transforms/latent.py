@@ -81,6 +81,7 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
+        model = model.half()
         model.to(device)
 
         # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
@@ -91,10 +92,6 @@ class Autoencoder:
             module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
             module.requires_grad_(False)
         self._model = model
-        print(model.device)
-
-        print(next(model.encoder.parameters()).device)
-        print(next(model.decoder.parameters()).device)
 
     # batch, channel, width, height
     def encode(self, images):
@@ -104,9 +101,10 @@ class Autoencoder:
             tensor_device = 'cpu'
             if is_tensor:
                 tensor_device = images.device
-                images = images.type(torch.FloatTensor).to(tensor_device)
+                # images = images.type(torch.FloatTensor).to(tensor_device)
+                images = images.to(torch.float16).to(tensor_device)
             else:
-                images = torch.FloatTensor(images)
+                images = torch.FloatTensor(images).to(torch.float16)
             
             same_device = tensor_device == self.device
 
@@ -119,6 +117,7 @@ class Autoencoder:
             # #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             del images
+            torch.cuda.empty_cache()
 
             if is_tensor:
                 if same_device:
