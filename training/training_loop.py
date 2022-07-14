@@ -325,11 +325,10 @@ def training_loop(
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
             phase_real_img = phase_real_img.to(torch.float32)
-            print(phase_real_img.shape)
             # phase_real_img = phase_real_img.to(torch.float32).to(device)
             
             #TODO: is this norm needed
-            # phase_real_img = phase_real_img.split(batch_gpu)
+            phase_real_img = phase_real_img.split(batch_gpu)
             # Converts to a 0 - 1 range instaed of 0 - 255
             # phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
@@ -354,7 +353,6 @@ def training_loop(
             for round_idx, (real_img, real_c, gen_z, gen_c) in enumerate(zip(phase_real_img, phase_real_c, phase_gen_z, phase_gen_c)):
                 sync = (round_idx == batch_size // (batch_gpu * num_gpus) - 1)
                 gain = phase.interval
-                print(real_img.ndim)
                 loss.accumulate_gradients(phase=phase.name, real_img=real_img, real_c=real_c, gen_z=gen_z, gen_c=gen_c, sync=sync, gain=gain)
 
             # Update weights.
