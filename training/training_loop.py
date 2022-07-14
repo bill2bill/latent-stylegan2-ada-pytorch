@@ -325,7 +325,10 @@ def training_loop(
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
             # phase_real_img = phase_real_img.to(torch.float32)
-            # phase_real_img = phase_real_img.to(torch.float32).to(device)
+
+            # The Autoencoder converts data to float and attaches to the correct device
+            if not encode:
+                phase_real_img = phase_real_img.to(torch.float32).to(device)
             
             #TODO: is this norm needed
             phase_real_img = phase_real_img.split(batch_gpu)
