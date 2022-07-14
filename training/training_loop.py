@@ -183,7 +183,7 @@ def training_loop(
 
             def __next__(self):
                 img, labels = next(self.iterator)
-                img.to(self.device)
+                img = img.to(self.device)
                 encoded = autoencoder.encode(img)
                 del img
                 return encoded, labels

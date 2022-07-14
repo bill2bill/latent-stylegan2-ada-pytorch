@@ -103,10 +103,7 @@ class Autoencoder:
                 images = torch.FloatTensor(images)
 
             tensor_device = images.device
-            print(tensor_device)
             same_device = tensor_device == self.device
-            print(self.device)
-            print(same_device)
 
             if not same_device:
                 images = images.to(self.device)
