@@ -86,7 +86,7 @@ class Autoencoder:
         modules = [model]
 
         for module in modules:
-            # module = module.to(device)
+            module = module.to(device)
             module.requires_grad_(True)
             module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
             module.requires_grad_(False)
