@@ -91,6 +91,9 @@ class Autoencoder:
             module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
             module.requires_grad_(False)
         self._model = model
+        print(model.device)
+        print(model.encoder.device)
+        print(model.decoder.device)
 
     # batch, channel, width, height
     def encode(self, images):
