@@ -162,7 +162,7 @@ def training_loop(
 
     autoencoder = None
     if encode:
-        autoencoder = Autoencoder(rank)
+        autoencoder = Autoencoder(device)
 
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, ae = autoencoder) # subclass of training.dataset.Dataset
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)

@@ -74,12 +74,11 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, rank = 0):
-        device = torch.device('cuda', rank)
+    def __init__(self, device):
         self.device = device
 
         pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
-        print(f'Creating Autoencoder on rank: {rank}')
+        print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
         model.to(device)
@@ -114,6 +113,12 @@ class Autoencoder:
             # #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             del images
+
+            print("--------")
+            print(encoded.device)
+            print(is_tensor)
+            print(same_device)
+
             if is_tensor:
                 if same_device:
                     return encoded
