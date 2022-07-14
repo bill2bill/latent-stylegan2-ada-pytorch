@@ -80,13 +80,13 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{CACHE_MODEL_DIR}/model.ckpt")
         model = model.half()
-        # model.to(device)
+        model.to(device)
 
         # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss]
         modules = [model]
 
         for module in modules:
-            module = module.to(device)
+            # module = module.to(device)
             module.requires_grad_(True)
             module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
             module.requires_grad_(False)
