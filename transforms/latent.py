@@ -95,7 +95,7 @@ class Autoencoder:
     # batch, channel, width, height
     def encode(self, images):
         with torch.no_grad():
-            # assert(len(images.shape) == 5)
+            assert(len(images.shape) == 4)
             is_tensor = torch.is_tensor(images)
             if is_tensor:
                 images = images.type(torch.FloatTensor)

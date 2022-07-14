@@ -274,7 +274,7 @@ def training_loop(
     if rank == 0:
         with torch.no_grad():
             print('Exporting sample images...')
-            grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
+            # grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
             # save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
             # grid_z = torch.randn([1, G.z_dim], device=device).split(batch_gpu)
             # grid_c = torch.from_numpy(labels[0]).to(device).split(batch_gpu)
@@ -325,6 +325,7 @@ def training_loop(
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
             phase_real_img = phase_real_img.to(torch.float32)
+            print(phase_real_img.shape)
             # phase_real_img = phase_real_img.to(torch.float32).to(device)
             
             #TODO: is this norm needed
