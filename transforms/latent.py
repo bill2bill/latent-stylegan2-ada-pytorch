@@ -139,6 +139,9 @@ class Autoencoder:
             # latent = norm_latent.to(self.device) * norm['std']
             latent = norm_latent
             decoded = self._model.decode(latent.to(self.device))
+            
+            del latent
+            torch.cuda.empty_cache()
 
             return decoded
 
