@@ -176,7 +176,7 @@ def training_loop(
             def __init__(self, iterator, ae, device):
                 self.iterator = iterator
                 self.ae = ae
-                self.device
+                self.device = device
 
             def __iter__(self):
                 return self
