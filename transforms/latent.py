@@ -83,7 +83,8 @@ class Autoencoder:
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
         model.to(device)
 
-        modules = [model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
+        # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
+        modules = [model]
 
         for module in modules:
             module.requires_grad_(True)
