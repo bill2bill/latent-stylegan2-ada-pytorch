@@ -173,20 +173,22 @@ def training_loop(
 
             """Iterator that counts upward forever."""
 
-            def __init__(self, iterator, ae):
+            def __init__(self, iterator, ae, device):
                 self.iterator = iterator
                 self.ae = ae
+                self.device
 
             def __iter__(self):
                 return self
 
             def __next__(self):
                 img, labels = next(self.iterator)
+                img.to(self.device)
                 encoded = autoencoder.encode(img)
                 del img
                 return encoded, labels
 
-        training_set_iterator = Wrapper(training_set_iterator, autoencoder)
+        training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
 
     if rank == 0:
         print()
@@ -322,12 +324,13 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
-            phase_real_img = phase_real_img.to(torch.float32).to(device)
+            phase_real_img = phase_real_img.to(torch.float32)
+            # phase_real_img = phase_real_img.to(torch.float32).to(device)
             
             #TODO: is this norm needed
             # phase_real_img = phase_real_img.split(batch_gpu)
             # Converts to a 0 - 1 range instaed of 0 - 255
-            phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
+            # phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
