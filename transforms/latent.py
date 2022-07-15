@@ -79,7 +79,7 @@ class Autoencoder:
 
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{CACHE_MODEL_DIR}/model.ckpt")
-        # model = model.half()
+        model = model.half()
         model.to(device)
 
         # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss]
