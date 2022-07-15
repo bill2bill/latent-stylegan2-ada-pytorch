@@ -213,12 +213,12 @@ def training_loop(
         for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
             misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
 
-    # # Print network summary tables.
-    # if rank == 0:
-    #     z = torch.empty([batch_gpu, G.z_dim], device=device)
-    #     c = torch.empty([batch_gpu, G.c_dim], device=device)
-    #     img = misc.print_module_summary(G, [z, c])
-    #     misc.print_module_summary(D, [img, c])
+    # Print network summary tables.
+    if rank == 0:
+        z = torch.empty([batch_gpu, G.z_dim], device=device)
+        c = torch.empty([batch_gpu, G.c_dim], device=device)
+        img = misc.print_module_summary(G, [z, c])
+        misc.print_module_summary(D, [img, c])
 
     # Setup augmentation.
     if rank == 0:
@@ -420,19 +420,19 @@ def training_loop(
                 print()
                 print('Aborting...')
 
-        # # Save image snapshot.
-        # if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
-        #     with torch.no_grad():
-        #         label = torch.zeros([1, G.c_dim], device=device)
-        #         z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
-        #         latent_img = G_ema(z, label, noise_mode='const')
-        #         images = training_set.post_process(latent_img).cpu().detach()
-        #         save_image_batch(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1])
-        #         del latent_img, images, z, label
+        # Save image snapshot.
+        if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
+            with torch.no_grad():
+                label = torch.zeros([1, G.c_dim], device=device)
+                z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
+                latent_img = G_ema(z, label, noise_mode='const')
+                images = training_set.post_process(latent_img).cpu().detach()
+                save_image_batch(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1])
+                del latent_img, images, z, label
                 
-        #         torch.cuda.empty_cache()
-        #     # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
-        #     # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
+                torch.cuda.empty_cache()
+            # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
+            # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
         # # Save network snapshot.
         # snapshot_pkl = None

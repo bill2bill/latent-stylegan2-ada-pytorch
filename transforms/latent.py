@@ -96,7 +96,12 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            return self._model.encode(images).sample()
+            encoded = self._model.encode(images).sample()
+            encoded = encoded / norm['std']
+            encoded = torch.clamp(encoded, -1., 1.)
+            #convert to range 0 - 1
+            encoded = (encoded + 1) / 2
+            return encoded
             # is_tensor = torch.is_tensor(images)
             # tensor_device = 'cpu'
             # if is_tensor:
@@ -133,6 +138,9 @@ class Autoencoder:
     def decode(self, latent):
         with torch.no_grad():
             assert(len(latent.shape) == 4)
+            latent = (latent - 1) * 2
+            latent = latent * norm['std']
+
             return self._model.decode(latent)
             # tensor_device = norm_latent.device
             # norm_latent = norm_latent.type(torch.HalfTensor).to(tensor_device)
