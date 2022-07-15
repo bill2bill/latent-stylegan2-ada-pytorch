@@ -188,7 +188,8 @@ class ImageFolderDataset(Dataset):
 
         raw_image = self._load_raw_image(0)
         if ae:
-            raw_image = torch.HalfTensor(raw_image).to(ae.device)
+            # raw_image = torch.HalfTensor(raw_image).to(ae.device)
+            raw_image = torch.FloatTensor(raw_image).to(ae.device)
             
             raw_image = ae.encode(torch.unsqueeze(raw_image, 0))[0].cpu().detach().numpy()
 
