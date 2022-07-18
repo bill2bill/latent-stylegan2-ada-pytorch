@@ -329,8 +329,11 @@ class EncodedDataset(torch.utils.data.Dataset):
             if resolution is None:
                 resolution = dataset[0].shape[1]
 
+            numerator = resolution
+
             fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution)).type(torch.FloatTensor).to(autoencoder.device)
             self._raw_shape = [len(dataset), *autoencoder.encode(fake_img).cpu().detach().numpy().shape[1:]]
+            scale = numerator // self._raw_shape[2]
             del fake_img
 
             dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
@@ -348,16 +351,18 @@ class EncodedDataset(torch.utils.data.Dataset):
 
                 batch = None
 
+                total = len(dataloader)
+
                 for idx, elem in enumerate(dataloader):
                     cache_path = f'{cache_dir}/latent_{idx}.npy'
                     data = elem.type(torch.FloatTensor).to(autoencoder.device)
                     latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
                         batch = latent
-                    if len(batch) < batch_size:
+                    if len(batch) < batch_size * scale:
                         batch = np.concatenate([batch, latent])
                     else:
-                        print(idx)
+                        print(idx, total)
                         np.save(cache_path, batch)
                         batch = None
                     del data
