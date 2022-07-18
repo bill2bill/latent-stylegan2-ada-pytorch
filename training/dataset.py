@@ -265,7 +265,7 @@ class ImageFolderDataset(Dataset):
 class EncodedDataset(torch.utils.data.Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
-        resolution = 256,           # Ensure specific resolution, None = highest available.
+        resolution = None,           # Ensure specific resolution, None = highest available.
         batch_size = 1000,
         workers = 2,
         ae = None,
@@ -275,13 +275,17 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._ae = ae
 
         dataset = dset.ImageFolder(root=path,
-                           transform=transforms.Compose([
-                                transforms.ToTensor(),
-                                transforms.Resize(resolution),
-                                transforms.CenterCrop(resolution),
-                                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                           ]))
-                           
+                            transform=transforms.Compose([
+                                    transforms.ToTensor(),
+                                    transforms.Resize(resolution),
+                                    transforms.CenterCrop(resolution),
+                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                            ])
+                           )
+
+        if resolution is None:
+            resolution = dataset[0][0].shape[1]
+
         fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
         self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
 

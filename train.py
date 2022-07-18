@@ -22,6 +22,8 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
+from training.dataset import EncodedDataset
+
 from transforms.latent import Autoencoder, setup
 
 #----------------------------------------------------------------------------
@@ -123,15 +125,19 @@ def setup_training_loop_kwargs(
     args.data_loader_kwargs = dnnlib.EasyDict(pin_memory=True, num_workers=3, prefetch_factor=2)
     
     #TODO
-    # try:
-    #     training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset
-    #     args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
-    #     args.training_set_kwargs.use_labels = training_set.has_labels # be explicit about labels
-    #     args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
-    #     desc = training_set.name
-    #     del training_set # conserve memory
-    # except IOError as err:
-    #     raise UserError(f'--data: {err}')
+    try:
+        if encode:
+            autoencoder = Autoencoder("cuda:0")
+            training_set = EncodedDataset(args.training_set_kwargs.path, ae = autoencoder)
+        else:
+            training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset
+        args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
+        args.training_set_kwargs.use_labels = training_set.has_labels # be explicit about labels
+        args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
+        desc = training_set.name
+        del training_set, autoencoder # conserve memory
+    except IOError as err:
+        raise UserError(f'--data: {err}')
 
     if cond is None:
         cond = False
