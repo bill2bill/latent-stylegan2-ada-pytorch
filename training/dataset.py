@@ -264,14 +264,14 @@ class ImageFolderDataset(Dataset):
 
 class EncodedDataset(torch.utils.data.Dataset):
     def __init__(self,
-        name,                   # Name of the dataset.
         path,                        # Path to directory or zip.
         resolution = 256,           # Ensure specific resolution, None = highest available.
         batch_size = 1000,
         workers = 2,
         ae = None,
     ):
-        self._name = name
+        self._path = path
+        self._name = os.path.splitext(os.path.basename(self._path))[0]
         self._ae = ae
 
         dataset = dset.ImageFolder(root=path,
