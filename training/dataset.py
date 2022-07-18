@@ -289,7 +289,7 @@ class EncodedDataset(torch.utils.data.Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
         resolution = None,           # Ensure specific resolution, None = highest available.
-        batch_size = 200,
+        batch_size = 32,
         workers = 2,
         # ae = None,
         ngpu = 4,
@@ -357,6 +357,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                     if len(batch) < batch_size:
                         batch = np.concatenate([batch, latent])
                     else:
+                        print(idx)
                         np.save(cache_path, batch)
                         batch = None
                     del data
