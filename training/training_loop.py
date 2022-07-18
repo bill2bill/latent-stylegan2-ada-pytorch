@@ -23,6 +23,7 @@ from torch_utils.ops import grid_sample_gradfix
 
 import legacy
 from metrics import metric_main
+from training.dataset import EncodedDataset
 from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
@@ -163,32 +164,35 @@ def training_loop(
     autoencoder = None
     if encode:
         autoencoder = Autoencoder(device)
+        training_set = EncodedDataset(training_set_kwargs.name, training_set_kwargs.resolution, batch_size, data_loader_kwargs.num_workers, autoencoder)
+        training_set_iterator = iter(training_set)
+    else:
+        training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
+        training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
 
-    training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs, ae = autoencoder) # subclass of training.dataset.Dataset
-    training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
+        training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
-    training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
-    if encode:
-        class Wrapper():
+    # if encode:
+        # class Wrapper():
 
-            """Iterator wraps around another iterator and encodes the elements."""
+        #     """Iterator wraps around another iterator and encodes the elements."""
 
-            def __init__(self, iterator, ae, device):
-                self.iterator = iterator
-                self.ae = ae
-                self.device = device
+        #     def __init__(self, iterator, ae, device):
+        #         self.iterator = iterator
+        #         self.ae = ae
+        #         self.device = device
 
-            def __iter__(self):
-                return self
+        #     def __iter__(self):
+        #         return self
 
-            def __next__(self):
-                img, labels = next(self.iterator)
-                img = img.to(self.device)
-                encoded = autoencoder.encode(img)
-                del img
-                return encoded, labels
+        #     def __next__(self):
+        #         img, labels = next(self.iterator)
+        #         img = img.to(self.device)
+        #         encoded = autoencoder.encode(img)
+        #         del img
+        #         return encoded, labels
 
-        training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
+        # training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
 
     if rank == 0:
         print()

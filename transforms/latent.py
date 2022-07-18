@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from ldm.models.autoencoder import AutoencoderKL
+from torch_utils.misc import get_cache_dir
 
 DEFAULT_AE_CONFIG = {
     "ddconfig": {
@@ -54,7 +55,9 @@ def download_url(url, save_path, chunk_size=128):
             fd.write(chunk)
 
 def download_pre_trained_ae(url, output_dir):
-    path = f"{CACHE_MODEL_DIR}/model.ckpt"
+    cache_dir = get_cache_dir()
+    output_dir = f"{cache_dir}/{output_dir}"
+    path = f"{output_dir}/model.ckpt"
     tmp_path = './tmp'
     if os.path.exists(path):
         print("Used cache")

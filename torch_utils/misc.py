@@ -6,12 +6,20 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+import os
 import re
 import contextlib
 import numpy as np
 import torch
 import warnings
 import dnnlib
+
+CACHE_DIR = './cache'
+
+def get_cache_dir():
+    if not os.path.exists(CACHE_DIR):
+        os.makedirs(CACHE_DIR)
+    return CACHE_DIR
 
 #----------------------------------------------------------------------------
 # Cached construction of constant tensors. Avoids CPU=>GPU copy when the

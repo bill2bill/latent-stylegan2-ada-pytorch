@@ -13,8 +13,12 @@ import PIL.Image
 import json
 import torch
 import dnnlib
+from torch_utils.misc import get_cache_dir
 
 from transforms.latent import Autoencoder
+
+import torchvision.transforms as transforms
+import torchvision.datasets as dset
 
 try:
     import pyspng
@@ -254,5 +258,117 @@ class ImageFolderDataset(Dataset):
         labels = np.array(labels)
         labels = labels.astype({1: np.int64, 2: np.float32}[labels.ndim])
         return labels
+
+#----------------------------------------------------------------------------
+
+
+class EncodedDataset(torch.utils.data.Dataset):
+    def __init__(self,
+        name,                   # Name of the dataset.
+        path,                        # Path to directory or zip.
+        resolution = 256,           # Ensure specific resolution, None = highest available.
+        batch_size = 1000,
+        workers = 2,
+        ae = None,
+    ):
+        self._name = name
+        self._ae = ae
+
+        dataset = dset.ImageFolder(root=path,
+                           transform=transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Resize(resolution),
+                                transforms.CenterCrop(resolution),
+                                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                           ]))
+                           
+        fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
+        self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
+
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers)
+
+        ngpus = 4
+        rank = 3
+
+        block = len(dataloader) // ngpus
+        start = rank * block
+        end = start + block + 1 # Range is exclusive
+        self._length = block
+
+        batch = None
+        cache_dir = get_cache_dir()
+        self._cache_dir = cache_dir
+
+        for i in range(start, end):
+            cache_path = f'{cache_dir}/ffhq_encoded_cache_{i}.npy'
+            if not os.path.exists(cache_path):
+                data = torch.FloatTensor(data[i]).to(self.ae.device)
+                latent = self._encode(data).cpu().detach().numpy()
+                if batch is None:
+                    batch = latent
+                if len(batch) < batch_size:
+                    batch = np.concatenate([batch, latent])
+                else:
+                    np.save(cache_path, batch)
+                    batch = None
+
+    def __len__(self):
+        return self._length
+
+    def __getitem__(self, idx):
+        cache_path = f'{self._cache_dir}/ffhq_encoded_cache_{idx}.npy'
+        data = np.load(cache_path)
+        assert isinstance(data, np.ndarray)
+        
+        # Use labels always false
+        labels = self._get_raw_labels()
+
+        return data, labels
+
+    def _get_raw_labels(self):
+        return np.zeros([self._raw_shape[0], 0], dtype=np.float32)
+
+    def _encode(self, x):
+        with torch.no_grad():
+            return self._ae.encode(x).sample()
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def image_shape(self):
+        return list(self._raw_shape[1:])
+
+    @property
+    def num_channels(self):
+        assert len(self.image_shape) == 3 # CHW
+        return self.image_shape[0]
+
+    @property
+    def resolution(self):
+        assert len(self.image_shape) == 3 # CHW
+        assert self.image_shape[1] == self.image_shape[2]
+        return self.image_shape[1]
+
+    @property
+    def label_shape(self):
+        if self._label_shape is None:
+            raw_labels = self._get_raw_labels()
+            self._label_shape = raw_labels.shape[1:]
+        return list(self._label_shape)
+
+    @property
+    def label_dim(self):
+        assert len(self.label_shape) == 1
+        return self.label_shape[0]
+
+    @property
+    def has_labels(self):
+        return any(x != 0 for x in self.label_shape)
+
+    @property
+    def has_onehot_labels(self):
+        return self._get_raw_labels().dtype == np.int64
 
 #----------------------------------------------------------------------------
