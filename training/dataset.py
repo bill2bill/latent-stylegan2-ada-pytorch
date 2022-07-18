@@ -192,7 +192,10 @@ class ImageFolderDataset(Dataset):
 
         raw_image = self._load_raw_image(0)
         if ae:
-            raw_image = ae.encode(np.expand_dims(raw_image, 0))[0]
+            # raw_image = torch.HalfTensor(raw_image).to(ae.device)
+            raw_image = torch.FloatTensor(raw_image).to(ae.device)
+            
+            raw_image = ae.encode(torch.unsqueeze(raw_image, 0))[0].cpu().detach().numpy()
 
         raw_shape = [len(self._image_fnames)] + list(raw_image.shape)
 
@@ -242,6 +245,7 @@ class ImageFolderDataset(Dataset):
 
     def post_process(self, img):
         if self._ae:
+            # img = img.type(torch.HalfTensor).to(self._ae.device)
             return self._ae.decode(img)
         return img
 

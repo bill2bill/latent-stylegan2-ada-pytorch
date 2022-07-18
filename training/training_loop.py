@@ -186,12 +186,13 @@ def training_loop(
         #     def __iter__(self):
         #         return self
 
-        #     def __next__(self):
-        #         img, labels = next(self.iterator)
-        #         img = img.to(self.device)
-        #         encoded = autoencoder.encode(img)
-        #         del img
-        #         return encoded, labels
+            # def __next__(self):
+            #     img, labels = next(self.iterator)
+            #     # img = img.type(torch.HalfTensor).to(device)
+            #     img = img.type(torch.FloatTensor).to(device)
+            #     encoded = autoencoder.encode(img)
+            #     del img
+            #     return encoded, labels
 
         # training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
 
@@ -273,29 +274,31 @@ def training_loop(
             phase.end_event = torch.cuda.Event(enable_timing=True)
 
     # Export sample images.
-    grid_size = None
-    z = None
-    label = None
-    if rank == 0:
-        with torch.no_grad():
-            print('Exporting sample images...')
-            # grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
-            # save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
-            # grid_z = torch.randn([1, G.z_dim], device=device).split(batch_gpu)
-            # grid_c = torch.from_numpy(labels[0]).to(device).split(batch_gpu)
-            # grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
-            # grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
+    # grid_size = None
+    # z = None
+    # label = None
+    # if rank == 0:
+    #     with torch.no_grad():
+    #         print('Exporting sample images...')
+    #         # grid_size, images, labels = setup_snapshot_image_grid(training_set=training_set)
+    #         # save_image_grid(images, os.path.join(run_dir, 'reals.png'), drange=[0,255], grid_size=grid_size)
+    #         # grid_z = torch.randn([1, G.z_dim], device=device).split(batch_gpu)
+    #         # grid_c = torch.from_numpy(labels[0]).to(device).split(batch_gpu)
+    #         # grid_z = torch.randn([labels.shape[0], G.z_dim], device=device).split(batch_gpu)
+    #         # grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
 
-            label = torch.zeros([1, G.c_dim], device=device)
-            z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
-            latent_img = G_ema(z, label, noise_mode='const')
+    #         label = torch.zeros([1, G.c_dim], device=device)
+    #         z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
+    #         latent_img = G_ema(z, label, noise_mode='const')
 
-            img = training_set.post_process(latent_img).cpu()
-            save_image_batch(img, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
-            del img, latent_img
+    #         img = training_set.post_process(latent_img).cpu()
+    #         save_image_batch(img, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1])
+    #         del img, latent_img, label, z
+            
+    #         torch.cuda.empty_cache()
 
-            # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)])
-            # save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
+    #         # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)])
+    #         # save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
 
     # Initialize logs.
     if rank == 0:
@@ -331,12 +334,13 @@ def training_loop(
             phase_real_img, phase_real_c = next(training_set_iterator)
 
             # The Autoencoder converts data to float and attaches to the correct device
-            if not encode:
+            if encode:
+                phase_real_img = phase_real_img.split(batch_gpu)
+            else:
                 phase_real_img = phase_real_img.to(torch.float32).to(device)
                 # Converts to a 0 - 1 range instaed of 0 - 255
                 phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
             
-            phase_real_img = phase_real_img.split(batch_gpu)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
@@ -425,10 +429,14 @@ def training_loop(
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             with torch.no_grad():
+                label = torch.zeros([1, G.c_dim], device=device)
+                z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
                 latent_img = G_ema(z, label, noise_mode='const')
                 images = training_set.post_process(latent_img).cpu().detach()
                 save_image_batch(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1])
-                del latent_img, images
+                del latent_img, images, z, label
+                
+                torch.cuda.empty_cache()
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
