@@ -292,7 +292,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         batch_size = 200,
         workers = 2,
         # ae = None,
-        ngpus = 4,
+        ngpu = 4,
         rank = 1,
         cache = False
     ):
@@ -311,7 +311,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._length = block
         else:
             tsfm = None
-            autoencoder = Autoencoder("cuda:0", ngpus)
+            autoencoder = Autoencoder("cuda:0", ngpu = ngpu)
             if resolution:
                 tsfm = transforms.Compose([
                                         transforms.ToTensor(),
