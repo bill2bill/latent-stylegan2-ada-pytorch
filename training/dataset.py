@@ -319,7 +319,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
             for idx, elem in enumerate(dataloader):
                 cache_path = f'{cache_dir}/ffhq_encoded_cache_{idx}.npy'
-                data = elem[0].type(torch.FloatTensor).to(self.ae.device)
+                data = elem[0].type(torch.FloatTensor).to(ae.device)
                 latent = self._encode(data).cpu().detach().numpy()
                 if batch is None:
                     batch = latent
