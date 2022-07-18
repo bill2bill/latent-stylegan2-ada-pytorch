@@ -302,6 +302,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._label_shape = None
 
         cache_dir = f"{get_cache_dir()}/latent_images"
+        self._cache_dir = cache_dir
         if cache:
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
