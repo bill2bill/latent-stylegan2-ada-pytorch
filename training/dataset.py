@@ -329,7 +329,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             if resolution is None:
                 resolution = dataset[0].shape[1]
 
-            fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=autoencoder.device).type(torch.FloatTensor)
+            fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution)).type(torch.FloatTensor).to(autoencoder.device)
             self._raw_shape = [len(dataset), *autoencoder.encode(fake_img).cpu().detach().numpy().shape[1:]]
             del fake_img
 
