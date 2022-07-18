@@ -91,11 +91,11 @@ class Autoencoder:
         for module in modules:
             # module = module.to(device)
             if ngpu is None:
-                module = nn.DataParallel(module, list(range(ngpu)))
-                module.requires_grad_(False)
-            else:
                 module.requires_grad_(True)
                 module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
+                module.requires_grad_(False)
+            else:
+                module = nn.DataParallel(module, list(range(ngpu)))
                 module.requires_grad_(False)
         self._model = model
 
