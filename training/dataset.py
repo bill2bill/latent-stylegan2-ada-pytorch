@@ -274,13 +274,17 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._name = os.path.splitext(os.path.basename(self._path))[0]
         self._ae = ae
 
-        dataset = dset.ImageFolder(root=path,
-                            transform=transforms.Compose([
+        transforms = None
+        if resolution:
+            transforms.Compose([
                                     transforms.ToTensor(),
                                     transforms.Resize(resolution),
                                     transforms.CenterCrop(resolution),
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                             ])
+
+        dataset = dset.ImageFolder(root=path,
+                            transform=transforms
                            )
 
         if resolution is None:
