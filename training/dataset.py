@@ -270,7 +270,7 @@ from PIL import Image
 
 class ImageDataset(Dataset):
     def __init__(self, root='.', transform=None):
-        self.image_paths = map(os.listdir(root), lambda path: f"{root}/{path}")
+        self.image_paths = list(map(lambda path: f"{root}/{path}", os.listdir(root)))
         self.transform = transform
         
     def __getitem__(self, index):
