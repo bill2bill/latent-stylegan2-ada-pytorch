@@ -14,7 +14,7 @@ import torch
 import warnings
 import dnnlib
 
-CACHE_DIR = './cache'
+CACHE_DIR = './.cache'
 
 def get_cache_dir():
     if not os.path.exists(CACHE_DIR):
