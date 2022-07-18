@@ -355,9 +355,9 @@ class EncodedDataset(torch.utils.data.Dataset):
                 batch = None
 
                 total = len(dataloader)
+                i = 1
 
                 for idx, elem in enumerate(dataloader):
-                    cache_path = f'{cache_dir}/latent_{idx}.npy'
                     data = elem.type(torch.FloatTensor).to(autoencoder.device)
                     latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
@@ -365,6 +365,8 @@ class EncodedDataset(torch.utils.data.Dataset):
                     if len(batch) < (batch_size * scale):
                         batch = np.concatenate([batch, latent])
                     else:
+                        cache_path = f'{cache_dir}/latent_{i}.npy'
+                        i = i + 1
                         print(idx, total)
                         np.save(cache_path, batch)
                         batch = None
