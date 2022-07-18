@@ -273,6 +273,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._path = path
         self._name = os.path.splitext(os.path.basename(self._path))[0]
         self._ae = ae
+        self._label_shape = None
 
         tsfm = None
         if resolution:
