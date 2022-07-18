@@ -83,26 +83,26 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         # model = model.half()
-        model.to(device)
-        if ngpu is None:
-            model.requires_grad_(True)
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-            model.requires_grad_(False)
-        else:
-            model = nn.DataParallel(model, list(range(ngpu)))
+        model = model.to(device)
+        # if ngpu is None:
+        #     model.requires_grad_(True)
+        #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+        #     model.requires_grad_(False)
+        # else:
+        #     model = nn.DataParallel(model, list(range(ngpu)))
 
-        # modules = [model, model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss]
+        modules = [model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss]
         # modules = [model]
 
-        # for module in modules:
-        #     # module = module.to(device)
-        #     if ngpu is None:
-        #         module.requires_grad_(True)
-        #         module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
-        #         module.requires_grad_(False)
-        #     else:
-        #         module = nn.DataParallel(module, list(range(ngpu)))
-        #         # module.requires_grad_(False)
+        for module in modules:
+            # module = module.to(device)
+            if ngpu is None:
+                module.requires_grad_(True)
+                module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
+                module.requires_grad_(False)
+            else:
+                module = nn.DataParallel(module, list(range(ngpu)))
+                # module.requires_grad_(False)
         self._model = model
 
     # batch, channel, width, height
