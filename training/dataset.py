@@ -270,7 +270,7 @@ from PIL import Image
 
 class ImageDataset(Dataset):
     def __init__(self, root='.', transform=None):
-        self.image_paths = os.listdir(root)
+        self.image_paths = map(os.listdir(root), lambda path: f"{root}/{path}")
         self.transform = transform
         
     def __getitem__(self, index):
@@ -303,7 +303,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
         cache_dir = f"{get_cache_dir()}/latent_images"
         if cache:
-            block = len(os.listdir(cache_dir)) // ngpus
+            block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
             # end = start + block + 1 # Range is exclusive
             self._start = start
