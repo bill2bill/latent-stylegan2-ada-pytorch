@@ -84,7 +84,17 @@ class Autoencoder:
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         # model = model.half()
         model = model.to(device)
-        model.encoder = nn.DataParallel(model.encoder, list(range(ngpu)))
+
+        def parralel(model):
+            if ngpu is None:
+                model.requires_grad_(True)
+                model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+                model.requires_grad_(False)
+                return model
+            else:
+                return nn.DataParallel(model, list(range(ngpu)))
+
+        model.encoder = parralel(model.encoder)
         # if ngpu is None:
         #     model.requires_grad_(True)
         #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
