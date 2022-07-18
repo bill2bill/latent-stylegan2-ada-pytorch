@@ -127,15 +127,15 @@ def setup_training_loop_kwargs(
     #TODO
     try:
         if encode:
-            autoencoder = Autoencoder("cuda:0", distributed=False)
-            training_set = EncodedDataset(args.training_set_kwargs.path, ae = autoencoder)
+            # autoencoder = Autoencoder("cuda:0", ngpu=gpus)
+            training_set = EncodedDataset(args.training_set_kwargs.path, ngpu=gpus)
         else:
             training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset
         args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
         args.training_set_kwargs.use_labels = training_set.has_labels # be explicit about labels
         args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
         desc = training_set.name
-        del training_set, autoencoder # conserve memory
+        del training_set # conserve memory
     except IOError as err:
         raise UserError(f'--data: {err}')
 

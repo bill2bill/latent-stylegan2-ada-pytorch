@@ -77,7 +77,7 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device, distributed = True):
+    def __init__(self, device, ngpu = None):
         self.device = device
 
         print(f'Creating Autoencoder on device: {device}')
@@ -90,9 +90,13 @@ class Autoencoder:
 
         for module in modules:
             # module = module.to(device)
-            module.requires_grad_(True)
-            module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
-            module.requires_grad_(False)
+            if ngpu is None:
+                module = nn.DataParallel(module, list(range(ngpu)))
+                module.requires_grad_(False)
+            else:
+                module.requires_grad_(True)
+                module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
+                module.requires_grad_(False)
         self._model = model
 
     # batch, channel, width, height
@@ -100,8 +104,8 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(images.shape) == 4)
             encoded = self._model.encode(images).sample()
-            encoded = encoded / norm['std']
-            encoded = torch.clamp(encoded, -1., 1.)
+            # encoded = encoded / norm['std']
+            # encoded = torch.clamp(encoded, -1., 1.)
             #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             return encoded
@@ -142,7 +146,7 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(latent.shape) == 4)
             # latent = (latent - 1) * 2
-            latent = latent * norm['std']
+            # latent = latent * norm['std']
 
             return self._model.decode(latent)
             # tensor_device = norm_latent.device

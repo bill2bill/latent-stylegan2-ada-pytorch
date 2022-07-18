@@ -6,6 +6,7 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+from enum import auto
 import os
 import numpy as np
 import zipfile
@@ -265,6 +266,25 @@ class ImageFolderDataset(Dataset):
 
 #----------------------------------------------------------------------------
 
+from PIL import Image
+
+class ImageDataset(Dataset):
+    def __init__(self, root='.', transform=None):
+        self.image_paths = os.listdir(root)
+        self.transform = transform
+        
+    def __getitem__(self, index):
+        image_path = self.image_paths[index]
+        img = Image.open(image_path)
+        if self.transform is not None:
+            img = self.transform(img)
+        return img
+    
+    def __len__(self):
+        return len(self.image_paths)
+
+#----------------------------------------------------------------------------
+
 class EncodedDataset(torch.utils.data.Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
@@ -281,10 +301,17 @@ class EncodedDataset(torch.utils.data.Dataset):
         # self._ae = ae
         self._label_shape = None
 
+        cache_dir = f"{get_cache_dir()}/latent_images"
         if cache:
-            print("")
+            block = len(os.listdir(cache_dir)) // ngpus
+            start = rank * block
+            # end = start + block + 1 # Range is exclusive
+            self._start = start
+            # self._end = end
+            self._length = block
         else:
             tsfm = None
+            autoencoder = Autoencoder("cuda:0", ngpus)
             if resolution:
                 tsfm = transforms.Compose([
                                         transforms.ToTensor(),
@@ -297,15 +324,16 @@ class EncodedDataset(torch.utils.data.Dataset):
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
-            dataset = dset.ImageFolder(root=path, transform=tsfm)
+            dataset = dset.ImageDataset(root=path, transform=tsfm)
 
-            # if resolution is None:
-            #     resolution = dataset[0][0].shape[1]
+            if resolution is None:
+                resolution = dataset[0].shape[1]
 
-            fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
-            self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
+            fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=autoencoder.device) 
+            self._raw_shape = [len(dataset), *autoencoder.encode(fake_img).cpu().detach().numpy().shape[1:]]
+            del fake_img
 
-            dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=1000, shuffle=False, num_workers=workers))
+            dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
 
             # block = len(dataloader) // ngpus
             # start = rank * block
@@ -313,7 +341,6 @@ class EncodedDataset(torch.utils.data.Dataset):
             # self._start = start
             # # self._end = end
             # self._length = block
-            # cache_dir = f"{get_cache_dir()}/latent_images"
             # self._cache_dir = cache_dir
 
             if not os.path.exists(cache_dir):
@@ -322,9 +349,9 @@ class EncodedDataset(torch.utils.data.Dataset):
                 batch = None
 
                 for idx, elem in enumerate(dataloader):
-                    cache_path = f'{cache_dir}/ffhq_encoded_cache_{idx}.npy'
-                    data = elem[0].type(torch.FloatTensor).to(ae.device)
-                    latent = self._encode(data).cpu().detach().numpy()
+                    cache_path = f'{cache_dir}/latent_{idx}.npy'
+                    data = elem[0].type(torch.FloatTensor).to(autoencoder.device)
+                    latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
                         batch = latent
                     if len(batch) < batch_size:
@@ -332,13 +359,14 @@ class EncodedDataset(torch.utils.data.Dataset):
                     else:
                         np.save(cache_path, batch)
                         batch = None
+                    del data
 
     def __len__(self):
         return self._length
 
     def __getitem__(self, idx):
         i = self._start + idx
-        cache_path = f'{self._cache_dir}/ffhq_encoded_cache_{i}.npy'
+        cache_path = f'{self._cache_dir}/latent_{i}.npy'
         data = np.load(cache_path)
         assert isinstance(data, np.ndarray)
         

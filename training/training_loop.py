@@ -161,11 +161,11 @@ def training_loop(
         print('Loading training set...')
     # training_set_kwargs.rank = rank
 
-    autoencoder = None
+    # autoencoder = None
     if encode:
-        autoencoder = Autoencoder(device)
+        # autoencoder = Autoencoder(device)
         # training_set = EncodedDataset(training_set_kwargs.path, training_set_kwargs.resolution, batch_size, data_loader_kwargs.num_workers, autoencoder)
-        training_set = EncodedDataset(training_set_kwargs.path, ae = autoencoder)
+        training_set = EncodedDataset(training_set_kwargs.path, rank = rank, cache = True)
         training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
