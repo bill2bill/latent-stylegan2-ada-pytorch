@@ -54,9 +54,9 @@ def download_url(url, save_path, chunk_size=128):
         for chunk in r.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
 
-def download_pre_trained_ae(url, output_dir):
+def download_pre_trained_ae(url, folder):
     cache_dir = get_cache_dir()
-    output_dir = f"{cache_dir}/{output_dir}"
+    output_dir = f"{cache_dir}/{folder}"
     path = f"{output_dir}/model.ckpt"
     tmp_path = './tmp'
     if os.path.exists(path):
