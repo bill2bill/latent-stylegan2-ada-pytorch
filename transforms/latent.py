@@ -85,7 +85,7 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
-        model = model.half()
+        # model = model.half()
         model.to(device)
 
         # modules = [model, mod el.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
@@ -107,8 +107,8 @@ class Autoencoder:
             tensor_device = 'cpu'
             if is_tensor:
                 tensor_device = images.device
-                images = images.type(torch.HalfTensor).to(tensor_device)
-                # images = images.to(torch.float16).to(tensor_device)
+                # images = images.type(torch.HalfTensor).to(tensor_device)
+                images = images.to(torch.float16).to(tensor_device)
             else:
                 images = torch.HalfTensor(images)
             

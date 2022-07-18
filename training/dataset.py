@@ -267,66 +267,67 @@ class EncodedDataset(torch.utils.data.Dataset):
         resolution = None,           # Ensure specific resolution, None = highest available.
         batch_size = 200,
         workers = 2,
-        ae = None,
+        # ae = None,
+        ngpus = 4,
+        rank = 1,
+        cache = False
     ):
         self._path = path
         self._name = os.path.splitext(os.path.basename(self._path))[0]
-        self._ae = ae
+        # self._ae = ae
         self._label_shape = None
 
-        tsfm = None
-        if resolution:
-            tsfm = transforms.Compose([
-                                    transforms.ToTensor(),
-                                    transforms.Resize(resolution),
-                                    transforms.CenterCrop(resolution),
-                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                            ])
+        if cache:
+            print("")
         else:
-            tsfm = transforms.Compose([
-                                    transforms.ToTensor()
-                            ])
+            tsfm = None
+            if resolution:
+                tsfm = transforms.Compose([
+                                        transforms.ToTensor(),
+                                        transforms.Resize(resolution),
+                                        transforms.CenterCrop(resolution),
+                                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                                ])
+            else:
+                tsfm = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                ])
+            dataset = dset.ImageFolder(root=path, transform=tsfm)
 
-        dataset = dset.ImageFolder(root=path,
-                            transform=tsfm
-                           )
+            # if resolution is None:
+            #     resolution = dataset[0][0].shape[1]
 
-        if resolution is None:
-            resolution = dataset[0][0].shape[1]
+            fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
+            self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
 
-        fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
-        self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
+            dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=1000, shuffle=False, num_workers=workers))
 
-        dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
+            # block = len(dataloader) // ngpus
+            # start = rank * block
+            # # end = start + block + 1 # Range is exclusive
+            # self._start = start
+            # # self._end = end
+            # self._length = block
+            # cache_dir = f"{get_cache_dir()}/latent_images"
+            # self._cache_dir = cache_dir
 
-        ngpus = 4
-        rank = 3
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir)
 
-        block = len(dataloader) // ngpus
-        start = rank * block
-        # end = start + block + 1 # Range is exclusive
-        self._start = start
-        # self._end = end
-        self._length = block
-        cache_dir = f"{get_cache_dir()}/latent_images"
-        self._cache_dir = cache_dir
+                batch = None
 
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-
-            batch = None
-
-            for idx, elem in enumerate(dataloader):
-                cache_path = f'{cache_dir}/ffhq_encoded_cache_{idx}.npy'
-                data = elem[0].type(torch.FloatTensor).to(ae.device)
-                latent = self._encode(data).cpu().detach().numpy()
-                if batch is None:
-                    batch = latent
-                if len(batch) < batch_size:
-                    batch = np.concatenate([batch, latent])
-                else:
-                    np.save(cache_path, batch)
-                    batch = None
+                for idx, elem in enumerate(dataloader):
+                    cache_path = f'{cache_dir}/ffhq_encoded_cache_{idx}.npy'
+                    data = elem[0].type(torch.FloatTensor).to(ae.device)
+                    latent = self._encode(data).cpu().detach().numpy()
+                    if batch is None:
+                        batch = latent
+                    if len(batch) < batch_size:
+                        batch = np.concatenate([batch, latent])
+                    else:
+                        np.save(cache_path, batch)
+                        batch = None
 
     def __len__(self):
         return self._length
