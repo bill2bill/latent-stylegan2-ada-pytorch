@@ -261,12 +261,11 @@ class ImageFolderDataset(Dataset):
 
 #----------------------------------------------------------------------------
 
-
 class EncodedDataset(torch.utils.data.Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
         resolution = None,           # Ensure specific resolution, None = highest available.
-        batch_size = 1000,
+        batch_size = 200,
         workers = 2,
         ae = None,
     ):
