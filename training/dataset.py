@@ -304,17 +304,21 @@ class EncodedDataset(torch.utils.data.Dataset):
 
         block = len(dataloader) // ngpus
         start = rank * block
-        end = start + block + 1 # Range is exclusive
+        # end = start + block + 1 # Range is exclusive
+        self._start = start
+        # self._end = end
         self._length = block
-
-        batch = None
-        cache_dir = get_cache_dir()
+        cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
 
-        for i in range(start, end):
-            cache_path = f'{cache_dir}/ffhq_encoded_cache_{i}.npy'
-            if not os.path.exists(cache_path):
-                data = torch.FloatTensor(dataloader[i]).to(self.ae.device)
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
+            batch = None
+
+            for idx, batch in enumerate(dataloader):
+                cache_path = f'{cache_dir}/ffhq_encoded_cache_{idx}.npy'
+                data = batch.type(torch.FloatTensor).to(self.ae.device)
                 latent = self._encode(data).cpu().detach().numpy()
                 if batch is None:
                     batch = latent
@@ -328,7 +332,8 @@ class EncodedDataset(torch.utils.data.Dataset):
         return self._length
 
     def __getitem__(self, idx):
-        cache_path = f'{self._cache_dir}/ffhq_encoded_cache_{idx}.npy'
+        i = self._start + idx
+        cache_path = f'{self._cache_dir}/ffhq_encoded_cache_{i}.npy'
         data = np.load(cache_path)
         assert isinstance(data, np.ndarray)
         
