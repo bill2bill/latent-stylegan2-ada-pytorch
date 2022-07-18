@@ -80,7 +80,8 @@ class Autoencoder:
     def __init__(self, device):
         self.device = device
 
-        pl_sd = torch.load(f"{CACHE_MODEL_DIR}/model.ckpt")
+        cache_dir = get_cache_dir()
+        pl_sd = torch.load(f"{cache_dir}/{CACHE_MODEL_DIR}/model.ckpt")
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"])
         model.load_state_dict(pl_sd["state_dict"] ,strict=False)
