@@ -359,7 +359,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                     latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
                         batch = latent
-                    if len(batch) < batch_size * scale:
+                    if len(batch) < (batch_size * scale):
                         batch = np.concatenate([batch, latent])
                     else:
                         print(idx, total)
