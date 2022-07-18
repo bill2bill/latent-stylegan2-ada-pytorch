@@ -297,7 +297,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution), device=ae.device) 
         self._raw_shape = [len(dataset), *ae.encode(fake_img).cpu().detach().numpy().shape[1:]]
 
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers)
+        dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
 
         ngpus = 4
         rank = 3
