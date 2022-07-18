@@ -309,6 +309,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._start = start
             # self._end = end
             self._length = block
+            self._raw_shape = [block, 3, resolution, resolution]
         else:
             tsfm = None
             autoencoder = Autoencoder("cuda:0", ngpu = ngpu)
