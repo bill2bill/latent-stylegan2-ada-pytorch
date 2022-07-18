@@ -95,6 +95,10 @@ class Autoencoder:
                 return nn.DataParallel(model, list(range(ngpu)))
 
         model.encoder = parralel(model.encoder)
+        model.decoder = parralel(model.decoder)
+        model.loss = parralel(model.loss)
+        model.quant_conv = parralel(model.quant_conv)
+        model.post_quant_conv = parralel(model.post_quant_conv)
         # if ngpu is None:
         #     model.requires_grad_(True)
         #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
