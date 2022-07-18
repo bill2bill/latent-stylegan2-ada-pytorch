@@ -127,7 +127,7 @@ def setup_training_loop_kwargs(
     #TODO
     try:
         if encode:
-            autoencoder = Autoencoder("cuda:0")
+            autoencoder = Autoencoder("cuda:0", distributed=False)
             training_set = EncodedDataset(args.training_set_kwargs.path, ae = autoencoder)
         else:
             training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset

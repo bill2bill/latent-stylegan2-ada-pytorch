@@ -77,7 +77,7 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device):
+    def __init__(self, device, distributed = True):
         self.device = device
 
         cache_dir = get_cache_dir()
@@ -89,12 +89,14 @@ class Autoencoder:
         model.to(device)
 
         # modules = [model, mod el.quant_conv, model.post_quant_conv, model.encoder, model.decoder]
-        modules = [model]
 
-        for module in modules:
-            module.requires_grad_(True)
-            module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
-            module.requires_grad_(False)
+        if distributed:
+            modules = [model]
+
+            for module in modules:
+                module.requires_grad_(True)
+                module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
+                module.requires_grad_(False)
         self._model = model
 
     # batch, channel, width, height
