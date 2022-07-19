@@ -371,6 +371,8 @@ class EncodedDataset(torch.utils.data.Dataset):
                         np.save(cache_path, batch)
                         batch = None
                     del data
+                    
+        self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
     def __len__(self):
         return self._length
@@ -392,6 +394,14 @@ class EncodedDataset(torch.utils.data.Dataset):
     def _encode(self, x):
         with torch.no_grad():
             return self._ae.encode(x).sample()
+
+    def get_label(self, idx):
+        label = self._get_raw_labels()[self._raw_idx[idx]]
+        if label.dtype == np.int64:
+            onehot = np.zeros(self.label_shape, dtype=np.float32)
+            onehot[label] = 1
+            label = onehot
+        return label.copy()
 
     @property
     def name(self):
