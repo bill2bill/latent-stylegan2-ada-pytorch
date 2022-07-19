@@ -371,14 +371,14 @@ class EncodedDataset(torch.utils.data.Dataset):
                         np.save(cache_path, batch)
                         batch = None
                     del data
-                    
+
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
     def __len__(self):
         return self._length
 
     def __getitem__(self, idx):
-        i = self._start + idx
+        i = self._start + idx + 1
         cache_path = f'{self._cache_dir}/latent_{i}.npy'
         data = np.load(cache_path)
         assert isinstance(data, np.ndarray)
