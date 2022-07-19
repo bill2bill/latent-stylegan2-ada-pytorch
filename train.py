@@ -135,8 +135,13 @@ def setup_training_loop_kwargs(
         args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
         desc = training_set.name
         del training_set # conserve memory
+        torch.cuda.empty_cache()
     except IOError as err:
         raise UserError(f'--data: {err}')
+
+    import time
+    print("Sleeping...")
+    time.sleep(4)
 
     if cond is None:
         cond = False
