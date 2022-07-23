@@ -403,6 +403,12 @@ class EncodedDataset(torch.utils.data.Dataset):
             label = onehot
         return label.copy()
 
+    def post_process(self, img):
+        # if self._ae:
+        #     # img = img.type(torch.HalfTensor).to(self._ae.device)
+        #     return self._ae.decode(img)
+        return img
+
     @property
     def name(self):
         return self._name

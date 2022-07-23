@@ -139,10 +139,6 @@ def setup_training_loop_kwargs(
     except IOError as err:
         raise UserError(f'--data: {err}')
 
-    import time
-    print("Sleeping...")
-    time.sleep(4)
-
     if cond is None:
         cond = False
     assert isinstance(cond, bool)
