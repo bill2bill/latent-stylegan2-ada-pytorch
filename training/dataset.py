@@ -304,6 +304,9 @@ class EncodedDataset(torch.utils.data.Dataset):
             start = rank * block
             self._start = start
             if start + block > max_idx:
+                print(start)
+                print(block)
+                print(max_idx)
                 self._length = max_idx - start
             else:
                 self._length = block
@@ -359,7 +362,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         return self._length
 
     def __getitem__(self, idx):
-        i = self._start + idx
+        i = self._start + idx + 1
         cache_path = f'{self._cache_dir}/latent_{i}.npy'
         if os.path.exists(cache_path):
             data = np.load(cache_path)
