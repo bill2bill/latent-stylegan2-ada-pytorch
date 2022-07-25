@@ -99,25 +99,6 @@ class Autoencoder:
         model.loss = parralel(model.loss)
         model.quant_conv = parralel(model.quant_conv)
         model.post_quant_conv = parralel(model.post_quant_conv)
-        # if ngpu is None:
-        #     model.requires_grad_(True)
-        #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-        #     model.requires_grad_(False)
-        # else:
-        #     model = nn.DataParallel(model, list(range(ngpu)))
-
-        # modules = [model.quant_conv, model.post_quant_conv, model.encoder, model.decoder, model.loss]
-        # # modules = [model]
-
-        # for module in modules:
-        #     # module = module.to(device)
-        #     if ngpu is None:
-        #         module.requires_grad_(True)
-        #         module = torch.nn.parallel.DistributedDataParallel(module, device_ids=[device], broadcast_buffers=False)
-        #         module.requires_grad_(False)
-        #     else:
-        #         module = nn.DataParallel(module, list(range(ngpu)))
-        #         # module.requires_grad_(False)
         self._model = model
 
     # batch, channel, width, height
@@ -130,44 +111,15 @@ class Autoencoder:
             #convert to range 0 - 1
             # encoded = (encoded + 1) / 2
             return encoded
-            # is_tensor = torch.is_tensor(images)
-            # tensor_device = 'cpu'
-            # if is_tensor:
-            #     tensor_device = images.device
-            #     images = images.type(torch.HalfTensor).to(tensor_device)
-            #     # images = images.to(torch.float16).to(tensor_device)
-            # else:
-            #     images = torch.HalfTensor(images)
-            
-            # same_device = tensor_device == self.device
-
-            # if not same_device:
-            #     images = images.to(self.device)
-
-            # encoded = self._model.encode(images).sample()
-            # encoded = encoded / norm['std']
-            # encoded = torch.clamp(encoded, -1., 1.)
-            # #convert to range 0 - 1
-            # encoded = (encoded + 1) / 2
-            
-            # del images
-            # torch.cuda.empty_cache()
-
-            # if is_tensor:
-            #     if same_device:
-            #         return encoded
-            #     else:
-            #         return encoded.to(tensor_device)
-
-            # else:
-            #     return encoded.cpu().detach().numpy()
 
     # batch, channel, width, height
     def decode(self, latent):
         with torch.no_grad():
             assert(len(latent.shape) == 4)
             # latent = (latent - 1) * 2
-            # latent = latent * norm['std']
+            latent = torch.clamp(latent, -1., 1.)
+            latent = (latent - 1) * 2
+            latent = latent * norm['std']
 
             return self._model.decode(latent)
             # tensor_device = norm_latent.device

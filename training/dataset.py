@@ -19,7 +19,8 @@ from torch_utils.misc import get_cache_dir
 from transforms.latent import Autoencoder
 
 import torchvision.transforms as transforms
-import torchvision.datasets as dset
+
+from PIL import Image
 
 try:
     import pyspng
@@ -266,8 +267,6 @@ class ImageFolderDataset(Dataset):
 
 #----------------------------------------------------------------------------
 
-from PIL import Image
-
 class ImageDataset(Dataset):
     def __init__(self, root='.', transform=None):
         self.image_paths = list(map(lambda path: f"{root}/{path}", os.listdir(root)))
@@ -291,78 +290,60 @@ class EncodedDataset(torch.utils.data.Dataset):
         resolution = None,           # Ensure specific resolution, None = highest available.
         batch_size = 32,
         workers = 2,
-        # ae = None,
         ngpu = 4,
         rank = 1,
-        cache = False
+        clear = False, # Clear Cache
+        cache = False # Use data from cache
     ):
         self._path = path
         self._name = os.path.splitext(os.path.basename(self._path))[0]
-        # self._ae = ae
         self._label_shape = None
+        self._rank = rank
+        self._ngpu = ngpu
 
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
-            # end = start + block + 1 # Range is exclusive
             self._start = start
-            # self._end = end
             self._length = block
             self._raw_shape = [block, 3, resolution, resolution]
         else:
-            tsfm = None
-            autoencoder = Autoencoder("cuda:0", ngpu = ngpu)
-            if resolution:
-                tsfm = transforms.Compose([
-                                        transforms.ToTensor(),
-                                        transforms.Resize(resolution),
-                                        transforms.CenterCrop(resolution),
-                                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                                ])
-            else:
-                tsfm = transforms.Compose([
-                    transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                ])
+            autoencoder = self._autoencoder()
+            tsfm = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
             dataset = ImageDataset(root=path, transform=tsfm)
 
-            if resolution is None:
-                resolution = dataset[0].shape[1]
-
-            numerator = resolution
+            resolution = dataset[0].shape[1]
 
             fake_img = torch.randint(1, 255 + 1, (16, 3, resolution, resolution)).type(torch.FloatTensor).to(autoencoder.device)
             self._raw_shape = [len(dataset), *autoencoder.encode(fake_img).cpu().detach().numpy().shape[1:]]
-            scale = numerator // self._raw_shape[2]
             del fake_img
 
             dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
             self._length = len(dataloader)
 
-            # block = len(dataloader) // ngpus
-            # start = rank * block
-            # # end = start + block + 1 # Range is exclusive
-            # self._start = start
-            # # self._end = end
-            # self._length = block
-            # self._cache_dir = cache_dir
-
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
+
+                if clear:
+                    #TODO: clear data from cache directory
+                    print("clear!")
 
                 batch = None
 
                 total = len(dataloader)
-                i = 1
+                i = 0
 
                 for idx, elem in enumerate(dataloader):
                     data = elem.type(torch.FloatTensor).to(autoencoder.device)
                     latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
                         batch = latent
-                    if len(batch) < (batch_size * scale):
+                    if len(batch) < batch_size:
                         batch = np.concatenate([batch, latent])
                     else:
                         cache_path = f'{cache_dir}/latent_{i}.npy'
@@ -371,6 +352,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                         np.save(cache_path, batch)
                         batch = None
                     del data
+            del autoencoder
 
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
@@ -380,20 +362,19 @@ class EncodedDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         i = self._start + idx + 1
         cache_path = f'{self._cache_dir}/latent_{i}.npy'
-        data = np.load(cache_path)
-        assert isinstance(data, np.ndarray)
-        
-        # Use labels always false
-        labels = self._get_raw_labels()
+        if os.path.exists(cache_path):
+            data = np.load(cache_path)
+            assert isinstance(data, np.ndarray)
+            
+            # Use labels always false
+            labels = self._get_raw_labels()
 
-        return data, labels
+            return data, labels
+        else:
+            raise IOError(f"Cache file does not exist: {cache_path}")
 
     def _get_raw_labels(self):
         return np.zeros([self._raw_shape[0], 0], dtype=np.float32)
-
-    def _encode(self, x):
-        with torch.no_grad():
-            return self._ae.encode(x).sample()
 
     def get_label(self, idx):
         label = self._get_raw_labels()[self._raw_idx[idx]]
@@ -403,11 +384,16 @@ class EncodedDataset(torch.utils.data.Dataset):
             label = onehot
         return label.copy()
 
-    def post_process(self, img):
-        # if self._ae:
-        #     # img = img.type(torch.HalfTensor).to(self._ae.device)
-        #     return self._ae.decode(img)
+    def _autoencoder(self):
+        return Autoencoder(torch.device('cuda', self._rank), ngpu = self._ngpu)  
+
+    def decode(self, latent):
+        autoencoder = self._autoencoder()
+        latent = latent.to(autoencoder.device)
+        img = autoencoder.decode(latent).cpu().detach().numpy()
+        del latent, autoencoder
         return img
+
 
     @property
     def name(self):

@@ -83,7 +83,7 @@ def save_image_grid(img, fname, drange, grid_size):
     if C == 1:
         PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
     if C == 3:
-        PIL.Image.fromarray(img, 'RGB').save(fname)
+        PIL.Image.fromarray(img, 'RGB').save(fname)        
 
 def save_image_batch(img, fname, drange):
     lo, hi = drange
@@ -159,40 +159,17 @@ def training_loop(
     # Load training set.
     if rank == 0:
         print('Loading training set...')
-    # training_set_kwargs.rank = rank
 
-    # autoencoder = None
     if encode:
-        training_set = EncodedDataset(training_set_kwargs.path, rank = rank, cache = True, resolution=training_set_kwargs.resolution)
+        training_set_kwargs.rank = rank
+        training_set_kwargs.cache = True
+        training_set = EncodedDataset(**training_set_kwargs)
         training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
         training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
 
         training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
-
-    # if encode:
-        # class Wrapper():
-
-        #     """Iterator wraps around another iterator and encodes the elements."""
-
-        #     def __init__(self, iterator, ae, device):
-        #         self.iterator = iterator
-        #         self.ae = ae
-        #         self.device = device
-
-        #     def __iter__(self):
-        #         return self
-
-            # def __next__(self):
-            #     img, labels = next(self.iterator)
-            #     # img = img.type(torch.HalfTensor).to(device)
-            #     img = img.type(torch.FloatTensor).to(device)
-            #     encoded = autoencoder.encode(img)
-            #     del img
-            #     return encoded, labels
-
-        # training_set_iterator = Wrapper(training_set_iterator, autoencoder, device)
 
     if rank == 0:
         print()
@@ -335,9 +312,12 @@ def training_loop(
             if encode:
                 # phase_real_img = phase_real_img.split(batch_gpu)
                 phase_real_img = torch.FloatTensor(phase_real_img).to(device)
+                phase_real_img = phase_real_img / 70
+                #convert to range 0 - 1
+                phase_real_img = torch.clamp(phase_real_img, -1., 1.)
                 # Converts to a 0 - 1 range instaed of 0 - 255
-                phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
-
+                phase_real_img = (phase_real_img + 1) / 2
+                phase_real_img = phase_real_img.split(batch_gpu)
                 phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
             else:
                 phase_real_img = phase_real_img.to(torch.float32).to(device)
@@ -436,11 +416,20 @@ def training_loop(
             with torch.no_grad():
                 label = torch.zeros([1, G.c_dim], device=device)
                 z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
-                latent_img = G_ema(z, label, noise_mode='const')
-                images = training_set.post_process(latent_img).cpu().detach()
-                save_image_batch(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1])
-                del latent_img, images, z, label
-                
+                images = G_ema(z, label, noise_mode='const')
+                out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
+                if encode:
+                    # images = images.cpu().detach().numpy()
+                    # assert isinstance(images, np.ndarray)
+                    # np.save(out_path, images)
+
+                    images = training_set.decode(images)
+                    assert isinstance(images, np.ndarray)
+                    # Image needs no post processing as its been encoded back to image domain
+                    PIL.Image.fromarray(images, 'RGB').save(out_path)
+                else:
+                    save_image_batch(images, out_path, drange=[-1,1])
+                del images, z, label
                 torch.cuda.empty_cache()
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)

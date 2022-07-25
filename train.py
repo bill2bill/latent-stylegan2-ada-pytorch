@@ -37,9 +37,12 @@ def setup_training_loop_kwargs(
     # General options (not included in desc).
     gpus       = None, # Number of GPUs: <int>, default = 1 gpu
     snap       = None, # Snapshot interval: <int>, default = 50 ticks
-    encode     = False, # Encode images: <bool>, default = false
     metrics    = None, # List of metric names: [], ['fid50k_full'] (default), ...
     seed       = None, # Random seed: <int>, default = 0
+
+    # General Autoencoder options
+    encode     = False, # Encode images: <bool>, default = false
+    clear     = False, # Clear cached latent images: <bool>, default = false
 
     # Dataset.
     data       = None, # Training dataset (required): <path>
@@ -121,13 +124,12 @@ def setup_training_loop_kwargs(
 
     assert data is not None
     assert isinstance(data, str)
-    args.training_set_kwargs = dnnlib.EasyDict(class_name='training.dataset.ImageFolderDataset', path=data, use_labels=True, max_size=None, xflip=False)
+    args.training_set_kwargs = dnnlib.EasyDict(class_name='training.dataset.ImageFolderDataset', path=data, use_labels=True, max_size=None, xflip=False, clear=clear, batch_size=batch, ngpu=gpus)
     args.data_loader_kwargs = dnnlib.EasyDict(pin_memory=True, num_workers=3, prefetch_factor=2)
     
-    #TODO
     try:
         if encode:
-            training_set = EncodedDataset(args.training_set_kwargs.path, batch_size=batch, ngpu=gpus, cache=False)
+            training_set = EncodedDataset(**args.training_set_kwargs.path, cache = False)
         else:
             training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset
         args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
