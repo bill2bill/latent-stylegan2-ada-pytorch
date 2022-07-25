@@ -298,7 +298,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
-            max_idx = max(os.listdir(cache_dir).map(lambda path : int(path)))
+            max_idx = max(list(map(lambda path : int(path), os.listdir(cache_dir))))
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
             self._start = start
