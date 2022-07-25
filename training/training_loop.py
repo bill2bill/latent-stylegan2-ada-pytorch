@@ -424,11 +424,10 @@ def training_loop(
                     # np.save(out_path, images)
 
                     images = training_set.decode(images)
-                    images.permute(1, 2, 0).numpy()
+                    images.permute(0, 2, 3, 1).numpy()
                     assert isinstance(images, np.ndarray)
                     # Image needs no post processing as its been encoded back to image domain
                     PIL.Image.fromarray(images[0], 'RGB').save(out_path)
-                    print(images.shape)
                 else:
                     save_image_batch(images, out_path, drange=[-1,1])
                 del images, z, label
