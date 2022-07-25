@@ -129,7 +129,7 @@ def setup_training_loop_kwargs(
     
     try:
         if encode:
-            training_set = EncodedDataset(**args.training_set_kwargs.path, cache = False)
+            training_set = EncodedDataset(**args.training_set_kwargs, cache = False)
         else:
             training_set = dnnlib.util.construct_class_by_name(**args.training_set_kwargs) # subclass of training.dataset.Dataset
         args.training_set_kwargs.resolution = training_set.resolution # be explicit about resolution
