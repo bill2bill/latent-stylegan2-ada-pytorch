@@ -344,7 +344,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                     latent = autoencoder.encode(data).cpu().detach().numpy()
                     if batch is None:
                         batch = latent
-                    if len(batch) < batch_size:
+                    if len(batch) < (batch_size * 4):
                         batch = np.concatenate([batch, latent])
                     else:
                         cache_path = f'{cache_dir}/latent_{i}.npy'
