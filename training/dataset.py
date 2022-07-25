@@ -309,7 +309,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
-            dataset = ImageDataset(root=path, transform=tsfm, device = self._device)
+            dataset = ImageDataset(root=path, transform=tsfm)
 
             resolution = dataset[0].shape[1]
 
