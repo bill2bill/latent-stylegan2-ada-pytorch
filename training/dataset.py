@@ -303,9 +303,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
             self._start = start
-            print(start + block)
-            print(max_idx)
-            if start + block - 1 > max_idx:
+            if start + block + 1 > max_idx:
                 print(start)
                 print(block)
                 self._length = max_idx - start
@@ -313,7 +311,6 @@ class EncodedDataset(torch.utils.data.Dataset):
                 self._length = block
             self._raw_shape = [block, 3, resolution, resolution]
         else:
-            print("rank::::", rank)
             autoencoder = self._autoencoder()
             tsfm = transforms.Compose([
                 transforms.ToTensor(),
