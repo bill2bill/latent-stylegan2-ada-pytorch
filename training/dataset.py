@@ -384,7 +384,7 @@ class EncodedDataset(torch.utils.data.Dataset):
     def decode(self, latent):
         autoencoder = self._autoencoder()
         latent = latent.to(self._device)
-        img = autoencoder.decode(latent).cpu().detach().numpy()
+        img = autoencoder.decode(latent).cpu().detach()
         del latent, autoencoder
         return img
 
