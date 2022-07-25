@@ -14,6 +14,7 @@ import PIL.Image
 import json
 import torch
 import dnnlib
+import shutil
 import re
 from torch_utils.misc import get_cache_dir
 
@@ -328,7 +329,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._length = len(dataloader)
 
             if clear:
-                os.rmdir(cache_dir)
+                shutil.rmtree(cache_dir)
 
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)

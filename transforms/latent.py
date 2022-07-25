@@ -59,9 +59,7 @@ def download_pre_trained_ae(url, folder):
     output_dir = f"{cache_dir}/{folder}"
     path = f"{output_dir}/model.ckpt"
     tmp_path = './tmp'
-    if os.path.exists(path):
-        print("Used cache")
-    else:
+    if not os.path.exists(path):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
