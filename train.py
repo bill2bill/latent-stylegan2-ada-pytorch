@@ -428,6 +428,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--gpus', help='Number of GPUs to use [default: 1]', type=int, metavar='INT')
 @click.option('--snap', help='Snapshot interval [default: 50 ticks]', type=int, metavar='INT')
 @click.option('--encode', help='Encode and decode images using AE [default: false]', type=bool, metavar='BOOL')
+@click.option('--clear', help='clear cache [default: false]', type=bool, metavar='BOOL')
 @click.option('--metrics', help='Comma-separated list or "none" [default: fid50k_full]', type=CommaSeparatedList())
 @click.option('--seed', help='Random seed [default: 0]', type=int, metavar='INT')
 @click.option('-n', '--dry-run', help='Print training options and exit', is_flag=True)
