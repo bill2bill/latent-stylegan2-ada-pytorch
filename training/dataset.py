@@ -293,7 +293,8 @@ class EncodedDataset(torch.utils.data.Dataset):
         ngpu = 4,
         rank = 1,
         clear = False, # Clear Cache
-        cache = False # Use data from cache
+        cache = False, # Use data from cache
+        **super_kwargs              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._name = os.path.splitext(os.path.basename(self._path))[0]
