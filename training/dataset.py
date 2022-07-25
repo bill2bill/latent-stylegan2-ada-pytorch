@@ -283,7 +283,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         batch_size = 32,
         workers = 2,
         ngpu = 4,
-        rank = 1,
+        rank = 0,
         clear = False, # Clear Cache
         cache = False, # Use data from cache
         **super_kwargs              # Additional arguments for the Dataset base class.
@@ -304,6 +304,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._length = block
             self._raw_shape = [block, 3, resolution, resolution]
         else:
+            print("rank::::", rank)
             autoencoder = self._autoencoder()
             tsfm = transforms.Compose([
                 transforms.ToTensor(),
