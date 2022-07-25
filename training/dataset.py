@@ -303,10 +303,11 @@ class EncodedDataset(torch.utils.data.Dataset):
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
             self._start = start
-            if start + block > max_idx:
+            print(start + block)
+            print(max_idx)
+            if start + block - 1 > max_idx:
                 print(start)
                 print(block)
-                print(max_idx)
                 self._length = max_idx - start
             else:
                 self._length = block
