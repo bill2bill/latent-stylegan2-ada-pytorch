@@ -166,8 +166,8 @@ class ImageFolderDataset(Dataset):
         path,                        # Path to directory or zip.
         resolution = None,           # Ensure specific resolution, None = highest available.
         ae = None,
-        device = 'cuda:0'
-        **super_kwargs,              # Additional arguments for the Dataset base class.
+        device = 'cuda:0',
+        **super_kwargs              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._zipfile = None
