@@ -426,7 +426,8 @@ def training_loop(
                     images = training_set.decode(images)
                     assert isinstance(images, np.ndarray)
                     # Image needs no post processing as its been encoded back to image domain
-                    PIL.Image.fromarray(images, 'RGB').save(out_path)
+                    PIL.Image.fromarray(images[0], 'RGB').save(out_path)
+                    print(images.shape)
                 else:
                     save_image_batch(images, out_path, drange=[-1,1])
                 del images, z, label
