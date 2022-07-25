@@ -336,7 +336,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
                 batch = None
 
-                total = len(dataloader)
+                total = len(dataloader) // 4
                 i = 0
 
                 for idx, elem in enumerate(dataloader):
