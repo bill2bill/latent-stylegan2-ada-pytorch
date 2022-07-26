@@ -372,6 +372,19 @@ class EncodedDataset(torch.utils.data.Dataset):
         else:
             return None
 
+    def __iter__(self):
+        self.idx = 0
+        return self
+
+    def __next__(self):
+        elem = self.__getitem__(self.idx)
+        if elem is None:
+            raise StopIteration
+        else:
+            self.idx += 1
+            return elem
+
+
     def _get_raw_labels(self):
         return np.zeros([self._raw_shape[0], 0], dtype=np.float32)
 

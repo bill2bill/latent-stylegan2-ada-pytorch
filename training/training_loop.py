@@ -164,8 +164,8 @@ def training_loop(
         training_set_kwargs.rank = rank
         training_set_kwargs.cache = True
         training_set = EncodedDataset(**training_set_kwargs)
-        training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1))
-        # training_set_iterator = iter(training_set)
+        # training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1))
+        training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
         training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
