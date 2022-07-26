@@ -370,7 +370,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
             return data, labels
         else:
-            return None
+            raise StopIteration
 
     # def __iter__(self):
     #     self.idx = 0
