@@ -374,7 +374,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
     def __iter__(self):
         self.idx = 0
-        return iter(lambda _: next(self), None)
+        return iter(lambda *arg: next(self), None)
 
     def __next__(self):
         elem = self.__getitem__(self.idx)
