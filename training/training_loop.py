@@ -166,7 +166,7 @@ def training_loop(
         training_set = iter(EncodedDataset(**training_set_kwargs))
         # training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1))
         # training_set_iterator = map(lambda batch: batch[0], training_set_iterator)
-        training_set_iterator = iter(lambda _: next(training_set), None)
+        training_set_iterator = iter(lambda *arg: next(training_set), None)
         # training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
