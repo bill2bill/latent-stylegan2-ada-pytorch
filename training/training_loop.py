@@ -164,10 +164,10 @@ def training_loop(
         training_set_kwargs.rank = rank
         training_set_kwargs.cache = True
         training_set = EncodedDataset(**training_set_kwargs)
-        # training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1))
+        training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1, **data_loader_kwargs))
         # training_set_iterator = map(lambda batch: batch[0], training_set_iterator)
         # training_set_iterator = iter(lambda *arg: next(training_set), None)
-        training_set_iterator = iter(training_set)
+        # training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
         training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
@@ -309,10 +309,9 @@ def training_loop(
 
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
-            try:
-                phase_real_img, phase_real_c = next(training_set_iterator)
-            except StopIteration:
-                break;
+            phase_real_img, phase_real_c = next(training_set_iterator)
+            if encode:
+                phase_real_img, phase_real_c = phase_real_img[0], phase_real_c[0]
 
             # The Autoencoder converts data to float and attaches to the correct device
             if encode:
