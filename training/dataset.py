@@ -361,7 +361,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         return self._length
 
     def __getitem__(self, idx):
-        print(self._start, idx)
+        print(self._start, self._length, idx)
         i = self._start + idx
         cache_path = f'{self._cache_dir}/latent_{i}.npy'
         if os.path.exists(cache_path):
