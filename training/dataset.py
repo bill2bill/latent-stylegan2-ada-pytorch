@@ -304,7 +304,6 @@ class EncodedDataset(torch.utils.data.Dataset):
             block = len(os.listdir(cache_dir)) // ngpu
             start = rank * block
             self._start = start
-            print(max_idx)
             if start + block + 1 > max_idx:
                 self._length = max_idx - start
             else:
@@ -360,7 +359,6 @@ class EncodedDataset(torch.utils.data.Dataset):
         return self._length
 
     def __getitem__(self, idx):
-        print(self._start, self._length, idx)
         i = self._start + idx
         cache_path = f'{self._cache_dir}/latent_{i}.npy'
         if os.path.exists(cache_path):
@@ -372,7 +370,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
             return data, labels
         else:
-            raise IOError(f"Cache file does not exist: {cache_path}")
+            return None
 
     def _get_raw_labels(self):
         return np.zeros([self._raw_shape[0], 0], dtype=np.float32)
