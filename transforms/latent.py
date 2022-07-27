@@ -115,8 +115,8 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(latent.shape) == 4)
             # latent = (latent - 1) * 2
-            latent = torch.clamp(latent, -1., 1.)
-            latent = (latent - 1) * 2
+            # latent = torch.clamp(latent, -1., 1.)
+            # latent = (latent - 1) * 2
             latent = latent * norm['std']
 
             return self._model.decode(latent)

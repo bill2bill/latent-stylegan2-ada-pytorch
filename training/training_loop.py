@@ -321,7 +321,7 @@ def training_loop(
                 #convert to range 0 - 1
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
                 # Converts to a 0 - 1 range instaed of 0 - 255
-                phase_real_img = (phase_real_img + 1) / 2
+                # phase_real_img = (phase_real_img + 1) / 2
                 phase_real_img = phase_real_img.split(batch_gpu)
                 phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
             else:
