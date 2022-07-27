@@ -296,28 +296,29 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._rank = rank
         self._ngpu = ngpu
         self._device = torch.device('cuda', rank)
-        self._data = np.array([])
+        # self._data = np.array([])
 
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
-            max_idx = max(list(map(lambda path : int("".join(list(filter(str.isdigit, path)))), os.listdir(cache_dir))))
-            block = len(os.listdir(cache_dir)) // ngpu
-            start = rank * block
-            self._start = start
-            if start + block + 1 > max_idx:
-                self._length = max_idx - start
-            else:
-                self._length = block
-            self._raw_shape = [block, 3, resolution, resolution]
+            self._length = len(os.listdir(cache_dir))
+            # max_idx = max(list(map(lambda path : int("".join(list(filter(str.isdigit, path)))), os.listdir(cache_dir))))
+            # block = len(os.listdir(cache_dir)) // ngpu
+            # start = rank * block
+            # self._start = start
+            # if start + block + 1 > max_idx:
+            #     self._length = max_idx - start
+            # else:
+            #     self._length = block
+            self._raw_shape = [self._length, 3, resolution, resolution]
 
-            for idx in range(self._length):
-                i = self._start + idx
-                cache_path = f'{self._cache_dir}/latent_{i}.npy'
-                if os.path.exists(cache_path):
-                    data = np.load(cache_path)
-                    assert isinstance(data, np.ndarray)
-                    self._data = np.concat([self._data, data])
+            # for idx in range(self._length):
+            #     i = self._start + idx
+            #     cache_path = f'{self._cache_dir}/latent_{i}.npy'
+            #     if os.path.exists(cache_path):
+            #         data = np.load(cache_path)
+            #         assert isinstance(data, np.ndarray)
+            #         self._data = np.concatenate([self._data, data])
 
         else:
             autoencoder = self._autoencoder()
@@ -342,38 +343,50 @@ class EncodedDataset(torch.utils.data.Dataset):
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
 
-                batch = None
+                # batch = None
 
-                total = len(dataloader) // 4
+                # total = len(dataloader) // 4
                 i = 0
 
                 for elem in dataloader:
                     data = elem.type(torch.FloatTensor).to(self._device)
                     latent = autoencoder.encode(data).cpu().detach().numpy()
-                    self._data = np.concat([self._data, latent])
-                    if batch is None:
-                        batch = latent
-                    if len(batch) < (batch_size * 4):
-                        batch = np.concatenate([batch, latent])
-                    else:
+                    for z in latent:
                         cache_path = f'{cache_dir}/latent_{i}.npy'
                         i = i + 1
-                        print(i, total)
-                        np.save(cache_path, batch)
-                        batch = None
-                    del data
+                        np.save(cache_path, z)
+                    # self._data = np.concatenate([self._data, latent])
+                    # if batch is None:
+                    #     batch = latent
+                    # if len(batch) < (batch_size * 4):
+                    #     batch = np.concatenate([batch, latent])
+                    # else:
+                    #     cache_path = f'{cache_dir}/latent_{i}.npy'
+                    #     i = i + 1
+                    #     print(i, total)
+                    #     np.save(cache_path, batch)
+                    #     batch = None
+                    del data, latent
             del autoencoder
 
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
     def __len__(self):
         # self._length
-        return len(self._data)
+        return self._length
 
     def __getitem__(self, idx):
-        # Use labels always false
-        labels = self._get_raw_labels()
-        return self._data[idx], labels
+        cache_path = f'{self._cache_dir}/latent_{idx}.npy'
+        if os.path.exists(cache_path):
+            data = np.load(cache_path)
+            assert isinstance(data, np.ndarray)
+            
+            # Use labels always false
+            labels = self._get_raw_labels()
+
+            return data, labels
+        else:
+            raise StopIteration
         # i = self._start + idx
         # cache_path = f'{self._cache_dir}/latent_{i}.npy'
         # if os.path.exists(cache_path):
