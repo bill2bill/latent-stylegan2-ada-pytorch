@@ -429,7 +429,13 @@ def training_loop(
                     # np.save(out_path, images)
 
                     images = training_set.decode(images)
-                    images = images.permute(0, 2, 3, 1).numpy()
+                    image = images[0, ...]
+                    image = image.detach().cpu()
+                    image = torch.clamp(image, -1., 1.)
+                    image = (image + 1.) / 2.
+                    image = image.permute(1, 2, 0).numpy()
+                    x = (255 * x).astype(np.uint8)
+                    # images = images.permute(0, 2, 3, 1).numpy()
                     assert isinstance(images, np.ndarray)
                     # Image needs no post processing as its been encoded back to image domain
                     PIL.Image.fromarray(images[0], 'RGB').save(out_path)
