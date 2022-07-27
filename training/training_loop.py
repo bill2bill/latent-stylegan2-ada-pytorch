@@ -434,7 +434,7 @@ def training_loop(
                     image = torch.clamp(image, -1., 1.)
                     image = (image + 1.) / 2.
                     image = image.permute(1, 2, 0).numpy()
-                    x = (255 * x).astype(np.uint8)
+                    image = (255 * image).astype(np.uint8)
                     # images = images.permute(0, 2, 3, 1).numpy()
                     assert isinstance(images, np.ndarray)
                     # Image needs no post processing as its been encoded back to image domain
