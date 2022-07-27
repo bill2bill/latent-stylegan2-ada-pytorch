@@ -286,6 +286,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         workers = 2,
         ngpu = 4,
         rank = 0,
+        max_size = None,
         clear = False, # Clear Cache
         cache = False, # Use data from cache
         **super_kwargs              # Additional arguments for the Dataset base class.
@@ -301,7 +302,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
-            self._length = len(os.listdir(cache_dir))
+            self._length = max_size
             # max_idx = max(list(map(lambda path : int("".join(list(filter(str.isdigit, path)))), os.listdir(cache_dir))))
             # block = len(os.listdir(cache_dir)) // ngpu
             # start = rank * block

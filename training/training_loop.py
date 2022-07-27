@@ -312,8 +312,6 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
-            if encode:
-                phase_real_img, phase_real_c = phase_real_img[0], phase_real_c[0]
 
             # The Autoencoder converts data to float and attaches to the correct device
             if encode:
