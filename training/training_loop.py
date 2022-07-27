@@ -436,9 +436,9 @@ def training_loop(
                     image = image.permute(1, 2, 0).numpy()
                     image = (255 * image).astype(np.uint8)
                     # images = images.permute(0, 2, 3, 1).numpy()
-                    assert isinstance(images, np.ndarray)
+                    assert isinstance(image, np.ndarray)
                     # Image needs no post processing as its been encoded back to image domain
-                    PIL.Image.fromarray(images[0], 'RGB').save(out_path)
+                    PIL.Image.fromarray(image, 'RGB').save(out_path)
                 else:
                     save_image_batch(images, out_path, drange=[-1,1])
                 del images, z, label
