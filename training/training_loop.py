@@ -164,7 +164,9 @@ def training_loop(
         training_set_kwargs.rank = rank
         training_set_kwargs.cache = True
         training_set = EncodedDataset(**training_set_kwargs)
-        training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, batch_size=1, **data_loader_kwargs))
+        training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
+
+        training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
         # training_set_iterator = map(lambda batch: batch[0], training_set_iterator)
         # training_set_iterator = iter(lambda *arg: next(training_set), None)
         # training_set_iterator = iter(training_set)
