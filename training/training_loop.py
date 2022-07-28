@@ -75,7 +75,7 @@ def save_image_grid(img, fname, drange, grid_size):
     img = np.rint(img).clip(0, 255).astype(np.uint8)
 
     gw, gh = grid_size
-    _N, C, H, W = img.shape
+    _N, H, W, C = img.shape
     img = img.reshape(gh, gw, C, H, W)
     # img = img.transpose(0, 3, 1, 4, 2)
     # img = img.reshape(gh * H, gw * W, C)
