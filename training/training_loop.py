@@ -87,19 +87,21 @@ def save_image_grid(img, fname, drange, grid_size):
 
 def save_image_batch(img, fname, drange):
     lo, hi = drange
-    img = img.permute(0, 2, 3, 1).numpy()
+    img = img[0]
+    img = img.permute(1, 2, 0).numpy()
+    # img = img.permute(0, 2, 3, 1).numpy()
     img = np.asarray(img, dtype=np.float32)
     img = (img - lo) * (255 / (hi - lo))
     img = np.rint(img).clip(0, 255).astype(np.uint8)
 
-    _N, H, W, C = img.shape
-    # H, W, C = img.shape
+    # _N, H, W, C = img.shape
+    H, W, C = img.shape
 
     assert C in [1, 3]
     # if C == 1: #Shouldnt come here
     #     PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
     if C == 3:
-        PIL.Image.fromarray(img[0], 'RGB').save(fname)
+        PIL.Image.fromarray(img, 'RGB').save(fname)
 
 #----------------------------------------------------------------------------
 
