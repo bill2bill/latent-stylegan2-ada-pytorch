@@ -18,6 +18,9 @@ import shutil
 import re
 from torch_utils.misc import get_cache_dir
 
+import datetime
+import time
+
 from transforms.latent import Autoencoder
 
 import torchvision.transforms as transforms
@@ -323,6 +326,8 @@ class EncodedDataset(torch.utils.data.Dataset):
             if clear:
                 shutil.rmtree(cache_dir)
 
+            stamp = datetime.datetime.now()
+
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
                 i = 0
@@ -334,6 +339,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                         i = i + 1
                         np.save(cache_path, z)
                     del data, latent
+                print(f"Cache created in {round((datetime.datetime.now() - stamp).total_seconds() / 60, 0)} minutes")
             del autoencoder
 
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)

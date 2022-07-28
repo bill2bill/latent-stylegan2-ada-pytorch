@@ -160,15 +160,10 @@ def training_loop(
         training_set_kwargs.cache = True
         training_set = EncodedDataset(**training_set_kwargs)
         training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
-
         training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
-        # training_set_iterator = map(lambda batch: batch[0], training_set_iterator)
-        # training_set_iterator = iter(lambda *arg: next(training_set), None)
-        # training_set_iterator = iter(training_set)
     else:
         training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
         training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
-
         training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
 
     if rank == 0:
@@ -415,7 +410,9 @@ def training_loop(
                 if encode:
                     images = training_set.decode(images)
 
-                # grid_size, _, labels = setup_snapshot_image_grid(training_set=training_set)
+                print(z.shape)
+
+                # grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
                 # save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
 
                 save_image_batch(images, out_path, drange=[-1,1])
