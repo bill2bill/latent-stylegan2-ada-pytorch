@@ -314,7 +314,7 @@ def training_loop(
                 phase_real_img = torch.FloatTensor(phase_real_img).to(device)
                 phase_real_img = phase_real_img / 70
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
-                phase_real_img = (phase_real_img + 1) / 2
+                # phase_real_img = (phase_real_img + 1) / 2
                 phase_real_img = phase_real_img.split(batch_gpu)
             else:
                 phase_real_img = phase_real_img.to(torch.float32).to(device)
