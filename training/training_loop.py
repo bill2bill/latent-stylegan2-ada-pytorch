@@ -87,20 +87,13 @@ def save_image_grid(img, fname, drange, grid_size):
 
 def save_image_batch(img, fname, drange):
     lo, hi = drange
-    img = img[0]# Only save first image
-
-    # img = torch.clamp(img, -1., 1.)
-    # img = (img + 1.) / 2.
-    # img = img.permute(1, 2, 0).numpy()
-    # img = (255 * img).astype(np.uint8)
-
-    img = img.permute(1, 2, 0)
+    img = img.permute(0, 2, 3, 1).numpy()
     img = np.asarray(img, dtype=np.float32)
     img = (img - lo) * (255 / (hi - lo))
     img = np.rint(img).clip(0, 255).astype(np.uint8)
 
-    # _N, C, H, W = img.shape
-    H, W, C = img.shape
+    _N, C, H, W = img.shape
+    # H, W, C = img.shape
 
     assert C in [1, 3]
     # if C == 1: #Shouldnt come here
@@ -318,19 +311,13 @@ def training_loop(
                 # phase_real_img = phase_real_img.split(batch_gpu)
                 phase_real_img = torch.FloatTensor(phase_real_img).to(device)
                 phase_real_img = phase_real_img / 70
-                #convert to range 0 - 1
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
-                # Converts to a 0 - 1 range instaed of 0 - 255
-                # phase_real_img = (phase_real_img + 1) / 2
+                phase_real_img = (phase_real_img + 1) / 2
                 phase_real_img = phase_real_img.split(batch_gpu)
-                phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
             else:
                 phase_real_img = phase_real_img.to(torch.float32).to(device)
-                # Converts to a 0 - 1 range instaed of 0 - 255
                 phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
-            
-                phase_real_c = phase_real_c.to(device).split(batch_gpu)
-
+            phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
 
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
@@ -424,23 +411,12 @@ def training_loop(
                 images = G_ema(z, label, noise_mode='const')
                 out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
                 if encode:
-                    # images = images.cpu().detach().numpy()
-                    # assert isinstance(images, np.ndarray)
-                    # np.save(out_path, images)
-
                     images = training_set.decode(images)
-                    image = images[0, ...]
-                    image = image.detach().cpu()
-                    image = torch.clamp(image, -1., 1.)
-                    image = (image + 1.) / 2.
-                    image = image.permute(1, 2, 0).numpy()
-                    image = (255 * image).astype(np.uint8)
-                    # images = images.permute(0, 2, 3, 1).numpy()
-                    assert isinstance(image, np.ndarray)
-                    # Image needs no post processing as its been encoded back to image domain
-                    PIL.Image.fromarray(image, 'RGB').save(out_path)
-                else:
-                    save_image_batch(images, out_path, drange=[-1,1])
+
+                # grid_size, _, labels = setup_snapshot_image_grid(training_set=training_set)
+                # save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
+
+                save_image_batch(images, out_path, drange=[-1,1])
                 del images, z, label
                 torch.cuda.empty_cache()
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()

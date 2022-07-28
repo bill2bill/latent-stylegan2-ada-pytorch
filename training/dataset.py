@@ -297,35 +297,17 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._rank = rank
         self._ngpu = ngpu
         self._device = torch.device('cuda', rank)
-        # self._data = np.array([])
 
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
             self._length = max_size
-            # max_idx = max(list(map(lambda path : int("".join(list(filter(str.isdigit, path)))), os.listdir(cache_dir))))
-            # block = len(os.listdir(cache_dir)) // ngpu
-            # start = rank * block
-            # self._start = start
-            # if start + block + 1 > max_idx:
-            #     self._length = max_idx - start
-            # else:
-            #     self._length = block
             self._raw_shape = [self._length, 3, resolution, resolution]
-
-            # for idx in range(self._length):
-            #     i = self._start + idx
-            #     cache_path = f'{self._cache_dir}/latent_{i}.npy'
-            #     if os.path.exists(cache_path):
-            #         data = np.load(cache_path)
-            #         assert isinstance(data, np.ndarray)
-            #         self._data = np.concatenate([self._data, data])
-
         else:
             autoencoder = self._autoencoder()
             tsfm = transforms.Compose([
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
             dataset = ImageDataset(root=path, transform=tsfm)
 
@@ -343,12 +325,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
-
-                # batch = None
-
-                # total = len(dataloader) // 4
                 i = 0
-
                 for elem in dataloader:
                     data = elem.type(torch.FloatTensor).to(self._device)
                     latent = autoencoder.encode(data).cpu().detach().numpy()
@@ -356,24 +333,12 @@ class EncodedDataset(torch.utils.data.Dataset):
                         cache_path = f'{cache_dir}/latent_{i}.npy'
                         i = i + 1
                         np.save(cache_path, z)
-                    # self._data = np.concatenate([self._data, latent])
-                    # if batch is None:
-                    #     batch = latent
-                    # if len(batch) < (batch_size * 4):
-                    #     batch = np.concatenate([batch, latent])
-                    # else:
-                    #     cache_path = f'{cache_dir}/latent_{i}.npy'
-                    #     i = i + 1
-                    #     print(i, total)
-                    #     np.save(cache_path, batch)
-                    #     batch = None
                     del data, latent
             del autoencoder
 
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
     def __len__(self):
-        # self._length
         return self._length
 
     def __getitem__(self, idx):
@@ -388,27 +353,6 @@ class EncodedDataset(torch.utils.data.Dataset):
             return data, labels
         else:
             raise StopIteration
-        # i = self._start + idx
-        # cache_path = f'{self._cache_dir}/latent_{i}.npy'
-        # if os.path.exists(cache_path):
-        #     data = np.load(cache_path)
-        #     assert isinstance(data, np.ndarray)
-            
-        #     # Use labels always false
-        #     labels = self._get_raw_labels()
-
-        #     return data, labels
-        # else:
-        #     raise StopIteration
-
-    # def __iter__(self):
-    #     self.idx = 0
-    #     return self
-
-    # def __next__(self):
-    #     elem = self.__getitem__(self.idx)
-    #     self.idx += 1
-    #     return elem
 
     def _get_raw_labels(self):
         return np.zeros([self._raw_shape[0], 0], dtype=np.float32)
@@ -430,7 +374,6 @@ class EncodedDataset(torch.utils.data.Dataset):
         img = autoencoder.decode(latent).cpu().detach()
         del latent, autoencoder
         return img
-
 
     @property
     def name(self):
