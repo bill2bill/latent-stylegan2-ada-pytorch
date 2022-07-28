@@ -76,9 +76,9 @@ def save_image_grid(img, fname, drange, grid_size):
 
     gw, gh = grid_size
     _N, H, W, C = img.shape
-    img = img.reshape(gh, gw, C, H, W)
+    img = img.reshape(gh, gw, H, W, C)
     # img = img.transpose(0, 3, 1, 4, 2)
-    # img = img.reshape(gh * H, gw * W, C)
+    img = img.reshape(gh * H, gw * W, C)
 
     assert C in [1, 3]
     if C == 1:
