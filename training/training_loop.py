@@ -403,8 +403,9 @@ def training_loop(
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             with torch.no_grad():
-                label = torch.zeros([1, G.c_dim], device=device)
-                z = torch.from_numpy(np.random.randn(1, G.z_dim)).to(device)
+                num = 20
+                label = torch.zeros([num, G.c_dim], device=device)
+                z = torch.from_numpy(np.random.randn(num, G.z_dim)).to(device)
                 images = G_ema(z, label, noise_mode='const')
                 out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
                 if encode:
@@ -412,10 +413,10 @@ def training_loop(
 
                 print(z.shape)
 
-                # grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
-                # save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
+                grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
+                save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
 
-                save_image_batch(images, out_path, drange=[-1,1])
+                # save_image_batch(images, out_path, drange=[-1,1])
                 del images, z, label
                 torch.cuda.empty_cache()
             # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
