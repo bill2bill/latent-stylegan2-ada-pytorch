@@ -69,6 +69,7 @@ def setup_snapshot_image_grid(training_set, random_seed=0):
 
 def save_image_grid(img, fname, drange, grid_size):
     lo, hi = drange
+    img = img.permute(0, 2, 3, 1).numpy()
     img = np.asarray(img, dtype=np.float32)
     img = (img - lo) * (255 / (hi - lo))
     img = np.rint(img).clip(0, 255).astype(np.uint8)
@@ -76,8 +77,8 @@ def save_image_grid(img, fname, drange, grid_size):
     gw, gh = grid_size
     _N, C, H, W = img.shape
     img = img.reshape(gh, gw, C, H, W)
-    img = img.transpose(0, 3, 1, 4, 2)
-    img = img.reshape(gh * H, gw * W, C)
+    # img = img.transpose(0, 3, 1, 4, 2)
+    # img = img.reshape(gh * H, gw * W, C)
 
     assert C in [1, 3]
     if C == 1:
@@ -410,11 +411,10 @@ def training_loop(
                 out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
                 if encode:
                     images = training_set.decode(images)
+                else:
+                    images = images.cpu().detach()
 
-                print(z.shape)
-
-                # grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
-                grid_size = (3, 10)
+                grid_size = (10, 3)
                 save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
 
                 # save_image_batch(images, out_path, drange=[-1,1])
