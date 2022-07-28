@@ -403,7 +403,7 @@ def training_loop(
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             with torch.no_grad():
-                num = 20
+                num = 30
                 label = torch.zeros([num, G.c_dim], device=device)
                 z = torch.from_numpy(np.random.randn(num, G.z_dim)).to(device)
                 images = G_ema(z, label, noise_mode='const')
@@ -413,7 +413,8 @@ def training_loop(
 
                 print(z.shape)
 
-                grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
+                # grid_size, _, _ = setup_snapshot_image_grid(training_set=training_set)
+                grid_size = (3, 10)
                 save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
 
                 # save_image_batch(images, out_path, drange=[-1,1])
