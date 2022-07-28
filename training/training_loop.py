@@ -92,14 +92,14 @@ def save_image_batch(img, fname, drange):
     img = (img - lo) * (255 / (hi - lo))
     img = np.rint(img).clip(0, 255).astype(np.uint8)
 
-    _N, C, H, W = img.shape
+    _N, H, W, C = img.shape
     # H, W, C = img.shape
 
     assert C in [1, 3]
     # if C == 1: #Shouldnt come here
     #     PIL.Image.fromarray(img[:, :, 0], 'L').save(fname)
     if C == 3:
-        PIL.Image.fromarray(img, 'RGB').save(fname)
+        PIL.Image.fromarray(img[0], 'RGB').save(fname)
 
 #----------------------------------------------------------------------------
 
