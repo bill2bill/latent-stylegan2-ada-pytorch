@@ -173,6 +173,7 @@ def training_loop(
     if rank == 0:
         print('Loading training set...')
 
+    print(training_set_kwargs)
     if encode:
         training_set_kwargs.rank = rank
         training_set_kwargs.cache = True
