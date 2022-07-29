@@ -186,7 +186,6 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
         # Dataset needs to be reset
         del dataset_kwargs.resolution
         del dataset_kwargs.use_labels
-        del dataset_kwargs.max_size
         del dataset_kwargs.rank
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
@@ -251,6 +250,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
     if opts.encode:
+        print(opts)
         dataset = EncodedDataset(**opts.dataset_kwargs)
     else:
         dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
