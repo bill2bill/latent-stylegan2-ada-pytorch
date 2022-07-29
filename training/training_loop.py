@@ -323,11 +323,10 @@ def training_loop(
 
             # The Autoencoder converts data to float and attaches to the correct device
             if encode:
-                # phase_real_img = phase_real_img.split(batch_gpu)
                 phase_real_img = torch.FloatTensor(phase_real_img).to(device)
+                #TODO: remove normalise constant - convert to linear layer
                 phase_real_img = phase_real_img / 70
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
-                # phase_real_img = (phase_real_img + 1) / 2
                 phase_real_img = phase_real_img.split(batch_gpu)
             else:
                 phase_real_img = phase_real_img.to(torch.float32).to(device)
@@ -432,7 +431,15 @@ def training_loop(
 
                 # Calculate FID
                 # metric_path = os.path.join(run_dir, f'metrics.csv')
-                fid = frechet_inception_distance.compute_fid(training_set_kwargs, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
+                opts = {
+                    "rank": rank,
+                    "dataset_kwargs": training_set_kwargs,
+                    "cache": False,
+                    "device": device,
+                    "num_gpus": num_gpus,
+                    "G_kwargs": G_kwargs,
+                }
+                fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
                 print("=" * 100)
                 print(fid)
                 print("=" * 100)
