@@ -181,7 +181,14 @@ class ProgressMonitor:
 #----------------------------------------------------------------------------
 
 def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, **stats_kwargs):
-    dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+    if opts.encode:
+        # Dataset needs to be reset
+        dataset_kwargs = opts.dataset_kwargs
+        dataset_kwargs.resolution = None
+        dataset_kwargs.use_labels = None
+        dataset_kwargs.max_size = None
+
+    dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     if data_loader_kwargs is None:
         data_loader_kwargs = dict(pin_memory=True, num_workers=3, prefetch_factor=2)
 
@@ -189,7 +196,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
     cache_file = None
     if opts.cache:
         # Choose cache file name.
-        args = dict(dataset_kwargs=opts.dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
+        args = dict(dataset_kwargs=dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
         md5 = hashlib.md5(repr(sorted(args.items())).encode('utf-8'))
         cache_tag = f'{dataset.name}-{get_feature_detector_name(detector_url)}-{md5.hexdigest()}'
         cache_file = dnnlib.make_cache_dir_path('gan-metrics', cache_tag + '.pkl')
