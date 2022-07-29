@@ -38,7 +38,9 @@ def list_valid_metrics():
 
 def calc_metric(metric, **kwargs): # See metric_utils.MetricOptions for the full list of arguments.
     assert is_valid_metric(metric)
+    print(kwargs.dataset_kwargs)
     opts = metric_utils.MetricOptions(**kwargs)
+    print(opts.dataset_kwargs)
 
     # Calculate.
     start_time = time.time()

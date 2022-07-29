@@ -315,7 +315,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             del fake_img
 
             dataloader = iter(torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=workers))
-            self._length = len(dataloader)
+            self._length = len(dataset)
 
             if clear:
                 shutil.rmtree(cache_dir)
