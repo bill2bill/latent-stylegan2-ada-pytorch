@@ -431,14 +431,15 @@ def training_loop(
 
                 # Calculate FID
                 # metric_path = os.path.join(run_dir, f'metrics.csv')
-                opts = {
-                    "rank": rank,
-                    "dataset_kwargs": training_set_kwargs,
-                    "cache": False,
-                    "device": device,
-                    "num_gpus": num_gpus,
-                    "G_kwargs": G_kwargs,
-                }
+                class Opts():
+                    def __init__(self, rank, dataset_kwargs, cache, device, num_gpus, G_kwargs):
+                        self.rank = rank
+                        self.dataset_kwargs = dataset_kwargs
+                        self.cache = cache
+                        self.device = device
+                        self.num_gpus = num_gpus
+                        self.G_kwargs = G_kwargs
+                opts = Opts(rank, training_set_kwargs, False, device, num_gpus, G_kwargs)
                 fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
                 print("=" * 100)
                 print(fid)
