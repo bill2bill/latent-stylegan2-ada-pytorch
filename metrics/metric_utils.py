@@ -187,8 +187,6 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
         dataset_kwargs.resolution = None
         dataset_kwargs.use_labels = None
         dataset_kwargs.max_size = None
-        dataset_kwargs.encode = False
-        dataset_kwargs.encode = False
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     if data_loader_kwargs is None:
@@ -196,6 +194,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
     # Try to lookup from cache.
     cache_file = None
+    print(opts.cache)
     if opts.cache:
         # Choose cache file name.
         args = dict(dataset_kwargs=dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
@@ -210,6 +209,8 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
             torch.distributed.broadcast(tensor=flag, src=0)
             flag = (float(flag.cpu()) != 0)
 
+        print(os.path.isfile(cache_file))
+        print(flag)
         # Load.
         if flag:
             return FeatureStats.load(cache_file)
