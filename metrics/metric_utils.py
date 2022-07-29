@@ -204,8 +204,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
         # Check if the file exists (all processes must agree).
         flag = os.path.isfile(cache_file) if opts.rank == 0 else False
-        print(cache_file)
-        print(os.path.isfile(cache_file))
+        print(opts.rank, cache_file, os.path.isfile(cache_file))
         if opts.num_gpus > 1:
             flag = torch.as_tensor(flag, dtype=torch.float32, device=opts.device)
             torch.distributed.broadcast(tensor=flag, src=0)
