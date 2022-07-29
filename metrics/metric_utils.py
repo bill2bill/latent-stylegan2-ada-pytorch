@@ -12,6 +12,7 @@ import time
 import hashlib
 import pickle
 import copy
+from types import NoneType
 import uuid
 import numpy as np
 import torch
@@ -184,9 +185,10 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
     dataset_kwargs = opts.dataset_kwargs
     if opts.encode:
         # Dataset needs to be reset
-        dataset_kwargs.resolution = None
-        dataset_kwargs.use_labels = None
-        dataset_kwargs.max_size = None
+        del dataset_kwargs.resolution
+        del dataset_kwargs.use_labels
+        del dataset_kwargs.max_size
+        del dataset_kwargs.rank
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     
@@ -204,12 +206,10 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
         # Check if the file exists (all processes must agree).
         flag = os.path.isfile(cache_file) if opts.rank == 0 else False
-        print(opts.rank, cache_file, os.path.isfile(cache_file), flag)
         if opts.num_gpus > 1:
             flag = torch.as_tensor(flag, dtype=torch.float32, device=opts.device)
             torch.distributed.broadcast(tensor=flag, src=0)
             flag = (float(flag.cpu()) != 0)
-        print(opts.rank, cache_file, os.path.isfile(cache_file), flag)
 
         # Load.
         if flag:
