@@ -463,7 +463,6 @@ def training_loop(
                 print(snapshot_pkl)
                 with open(snapshot_pkl, 'wb') as f:
                     pickle.dump(snapshot_data, f)
-                print("done")
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):

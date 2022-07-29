@@ -181,9 +181,9 @@ class ProgressMonitor:
 #----------------------------------------------------------------------------
 
 def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, **stats_kwargs):
+    dataset_kwargs = opts.dataset_kwargs
     if opts.encode:
         # Dataset needs to be reset
-        dataset_kwargs = opts.dataset_kwargs
         dataset_kwargs.resolution = None
         dataset_kwargs.use_labels = None
         dataset_kwargs.max_size = None
