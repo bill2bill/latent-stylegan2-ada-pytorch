@@ -125,7 +125,7 @@ def setup_training_loop_kwargs(
     assert data is not None
     assert isinstance(data, str)
     class_name = 'training.dataset.EncodedDataset' if encode else 'training.dataset.ImageFolderDataset'
-    args.training_set_kwargs = dnnlib.EasyDict(class_name=class_name, path=data, use_labels=True, max_size=None, xflip=False, clear=clear, batch_size=batch)
+    args.training_set_kwargs = dnnlib.EasyDict(class_name=class_name, path=data, use_labels=True, max_size=None, xflip=False, clear=clear, batch_size=batch, ngpu=gpus)
     args.data_loader_kwargs = dnnlib.EasyDict(pin_memory=True, num_workers=3, prefetch_factor=2)
     
     try:
@@ -135,6 +135,7 @@ def setup_training_loop_kwargs(
         args.training_set_kwargs.max_size = len(training_set) # be explicit about dataset size
         desc = training_set.name
         del training_set # conserve memory
+        del args.training_set_kwargs.ngpu
         torch.cuda.empty_cache()
     except IOError as err:
         raise UserError(f'--data: {err}')
