@@ -21,6 +21,8 @@ from torch_utils import training_stats
 from torch_utils.ops import conv2d_gradfix
 from torch_utils.ops import grid_sample_gradfix
 
+from metrics import frechet_inception_distance
+
 import legacy
 from metrics import metric_main
 from training.dataset import EncodedDataset
@@ -66,6 +68,21 @@ def setup_snapshot_image_grid(training_set, random_seed=0):
     return (gw, gh), np.stack(images), np.stack(labels)
 
 #----------------------------------------------------------------------------
+
+def parse_img(img, drange):
+    lo, hi = drange
+    img = img.permute(1, 2, 0).numpy()
+    img = np.asarray(img, dtype=np.float32)
+    img = (img - lo) * (255 / (hi - lo))
+    img = np.rint(img).clip(0, 255).astype(np.uint8)
+
+    H, W, C = img.shape
+
+    assert C in [1, 3]
+    if C == 1:
+        return PIL.Image.fromarray(img[:, :, 0], 'L')
+    if C == 3:
+        return PIL.Image.fromarray(img, 'RGB')
 
 def save_image_grid(img, fname, drange, grid_size):
     lo, hi = drange
@@ -411,17 +428,30 @@ def training_loop(
                 out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
                 if encode:
                     images = training_set.decode(images)
-                else:
-                    images = images.cpu().detach()
+                images = images.cpu().detach()
 
-                grid_size = (10, 3)
-                save_image_grid(images, out_path, drange=[-1,1], grid_size=grid_size)
+                # Calculate FID
+                # metric_path = os.path.join(run_dir, f'metrics.csv')
+                fid = frechet_inception_distance.compute_fid(training_set_kwargs, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
+                print("=" * 100)
+                print(fid)
+                print("=" * 100)
+                # with open(metric_path, "a") as myfile:
+                #     myfile.write("appended text")
 
-                # save_image_batch(images, out_path, drange=[-1,1])
+                # Save individual images
+                fake_image_dir = os.path.join(run_dir, f'{cur_nimg//1000:06d}')
+                if not os.path.exists(fake_image_dir):
+                    os.makedirs(fake_image_dir)
+                for idx, image in enumerate(images):
+                    img = parse_img(image, drange=[-1,1])
+                    path = os.path.join(fake_image_dir, f'{idx}.png')
+                    img.save(path)
+
+                # Save grid of images
+                save_image_grid(images, out_path, drange=[-1,1], grid_size=(10, 3))
                 del images, z, label
                 torch.cuda.empty_cache()
-            # images = torch.cat([training_set.post_process(G_ema(z=z, c=c, noise_mode='const')).cpu() for z, c in zip(grid_z, grid_c)]).numpy()
-            # save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
 
         # # Save network snapshot.
         # snapshot_pkl = None

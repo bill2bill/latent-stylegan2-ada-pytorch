@@ -177,8 +177,9 @@ class ProgressMonitor:
 
 #----------------------------------------------------------------------------
 
-def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, **stats_kwargs):
-    dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, dataset = None, **stats_kwargs):
+    if dataset is None:
+        dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
     if data_loader_kwargs is None:
         data_loader_kwargs = dict(pin_memory=True, num_workers=3, prefetch_factor=2)
 
@@ -229,18 +230,22 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
 #----------------------------------------------------------------------------
 
-def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, batch_gen=None, jit=False, **stats_kwargs):
+def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, batch_gen=None, jit=False, G = None, dataset = None, encode = False, **stats_kwargs):
     if batch_gen is None:
         batch_gen = min(batch_size, 4)
     assert batch_size % batch_gen == 0
 
     # Setup generator and load labels.
-    G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
-    dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+    if G is None:
+        G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
+    if dataset is None:
+        dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
 
     # Image generation func.
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
+        if encode:
+            img = dataset.decode(img).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 
