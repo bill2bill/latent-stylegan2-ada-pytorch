@@ -314,6 +314,7 @@ class EncodedDataset(torch.utils.data.Dataset):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
             dataset = ImageDataset(root=path, transform=tsfm)
+            # TODO: images are still in a range of -2 to 2, maybe they should be divided to convert to range of -1 and 1
 
             resolution = dataset[0].shape[1]
 
