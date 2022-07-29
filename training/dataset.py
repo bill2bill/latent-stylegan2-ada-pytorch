@@ -333,7 +333,8 @@ class EncodedDataset(torch.utils.data.Dataset):
                         np.save(cache_path, z)
                     del data, latent
                 print(f"Cache created in {round((datetime.datetime.now() - stamp).total_seconds() / 60, 0)} minutes")
-            # del autoencoder
+            self.autoencoder = None
+            torch.cuda.empty_cache()
 
         self._raw_idx = np.arange(self._raw_shape[0], dtype=np.int64)
 
@@ -367,10 +368,17 @@ class EncodedDataset(torch.utils.data.Dataset):
     def _autoencoder(self):
         return Autoencoder(self._device, ngpu = self._ngpu)  
 
-    def decode(self, latent):
+    def decode(self, latent, cache = False):
+        if self.autoencoder is None:
+            ae = self._autoencoder()
+        else:
+            ae = self.autoencoder
         latent = latent.to(self._device)
-        img = self.autoencoder.decode(latent)
-        # del latent, autoencoder
+        img = ae.decode(latent)
+        if cache:
+            self.autoencoder = ae
+        else:
+            del ae
         del latent
         return img
 
