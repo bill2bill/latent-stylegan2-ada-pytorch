@@ -297,7 +297,7 @@ class EncodedDataset(torch.utils.data.Dataset):
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
         if cache:
-            self._length = max_size
+            self._length = len(ImageDataset(root=path)) if max_size is None else max_size
             self._raw_shape = [self._length, 3, resolution, resolution]
         else:
             self.autoencoder = self._autoencoder()
