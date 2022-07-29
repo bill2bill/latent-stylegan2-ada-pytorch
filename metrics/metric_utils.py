@@ -187,6 +187,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
         del dataset_kwargs.resolution
         del dataset_kwargs.use_labels
         del dataset_kwargs.rank
+        dataset_kwargs.class_name = 'training.dataset.ImageFolderDataset'
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     
