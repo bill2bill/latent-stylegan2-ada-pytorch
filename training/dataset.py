@@ -292,14 +292,15 @@ class EncodedDataset(torch.utils.data.Dataset):
         self._rank = rank
         self._ngpu = ngpu
         self._device = torch.device('cuda', rank)
+        self.autoencoder = None
 
         cache_dir = f"{get_cache_dir()}/latent_images"
         self._cache_dir = cache_dir
-        self.autoencoder = self._autoencoder()
         if cache:
             self._length = max_size
             self._raw_shape = [self._length, 3, resolution, resolution]
         else:
+            self.autoencoder = self._autoencoder()
             tsfm = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
