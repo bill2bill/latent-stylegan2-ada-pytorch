@@ -259,7 +259,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
         if opts.encode:
-            img = dataset.decode(img).clamp(-1, 1).to(opts.device)
+            img = dataset.decode(img, device = opts.device).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 

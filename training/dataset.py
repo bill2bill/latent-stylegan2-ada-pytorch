@@ -364,12 +364,14 @@ class EncodedDataset(torch.utils.data.Dataset):
             label = onehot
         return label.copy()
 
-    def _autoencoder(self):
-        return Autoencoder(self._device, ngpu = self._ngpu)  
+    def _autoencoder(self, device = None):
+        device = self._device if device is None else device
+        return Autoencoder(device, ngpu = self._ngpu)  
 
-    def decode(self, latent):
-        autoencoder = self._autoencoder()
-        latent = latent.to(self._device)
+    def decode(self, latent, device = None):
+        device = self._device if device is None else device
+        autoencoder = self._autoencoder(device)
+        latent = latent.to(device)
         img = autoencoder.decode(latent)
         del latent, autoencoder
         return img
