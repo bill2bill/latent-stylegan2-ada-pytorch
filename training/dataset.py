@@ -370,7 +370,7 @@ class EncodedDataset(torch.utils.data.Dataset):
 
     def decode(self, latent, device = None):
         device = self._device if device is None else device
-        autoencoder = self._autoencoder(device)
+        autoencoder = self._autoencoder(device = device)
         latent = latent.to(device)
         img = autoencoder.decode(latent)
         del latent, autoencoder
