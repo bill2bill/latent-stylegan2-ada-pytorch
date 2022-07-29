@@ -207,7 +207,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
     if max_items is not None:
         num_items = min(num_items, max_items)
     stats = FeatureStats(max_items=num_items, **stats_kwargs)
-    if "progress" in opts:
+    if opts.progress is not None:
         progress = opts.progress.sub(tag='dataset features', num_items=num_items, rel_lo=rel_lo, rel_hi=rel_hi)
     detector = get_feature_detector(url=detector_url, device=opts.device, num_gpus=opts.num_gpus, rank=opts.rank, verbose=progress.verbose)
 
@@ -218,7 +218,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
             images = images.repeat([1, 3, 1, 1])
         features = detector(images.to(opts.device), **detector_kwargs)
         stats.append_torch(features, num_gpus=opts.num_gpus, rank=opts.rank)
-        if "progress" in opts:
+        if opts.progress is not None:
             progress.update(stats.num_items)
 
     # Save to cache.
@@ -259,7 +259,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     # Initialize.
     stats = FeatureStats(**stats_kwargs)
     assert stats.max_items is not None
-    if "progress" in opts:
+    if opts.progress is not None:
         progress = opts.progress.sub(tag='generator features', num_items=stats.max_items, rel_lo=rel_lo, rel_hi=rel_hi)
     detector = get_feature_detector(url=detector_url, device=opts.device, num_gpus=opts.num_gpus, rank=opts.rank, verbose=progress.verbose)
 
@@ -276,7 +276,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
             images = images.repeat([1, 3, 1, 1])
         features = detector(images, **detector_kwargs)
         stats.append_torch(features, num_gpus=opts.num_gpus, rank=opts.rank)
-        if "progress" in opts:
+        if opts.progress is not None:
             progress.update(stats.num_items)
     return stats
 

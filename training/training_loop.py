@@ -439,6 +439,7 @@ def training_loop(
                         self.device = device
                         self.num_gpus = num_gpus
                         self.G_kwargs = G_kwargs
+                        self.progress = None
                 opts = Opts(rank, training_set_kwargs, False, device, num_gpus, G_kwargs)
                 fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
                 print("=" * 100)
