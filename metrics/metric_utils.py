@@ -250,11 +250,8 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
 
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
-    if opts.encode:
-        print(opts.dataset_kwargs)
-        dataset = EncodedDataset(**opts.dataset_kwargs)
-    else:
-        dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+    print(opts.dataset_kwargs)
+    dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
 
     # Image generation func.
     def run_generator(z, c):
