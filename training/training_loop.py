@@ -431,20 +431,22 @@ def training_loop(
 
                 # Calculate FID
                 # metric_path = os.path.join(run_dir, f'metrics.csv')
-                class Opts():
-                    def __init__(self, rank, dataset_kwargs, cache, device, num_gpus, G_kwargs):
-                        self.rank = rank
-                        self.dataset_kwargs = dataset_kwargs
-                        self.cache = cache
-                        self.device = device
-                        self.num_gpus = num_gpus
-                        self.G_kwargs = G_kwargs
-                        self.progress = None
-                opts = Opts(rank, training_set_kwargs, False, device, num_gpus, G_kwargs)
-                fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
-                print("=" * 100)
-                print(fid)
-                print("=" * 100)
+                # class Opts():
+                #     def __init__(self, rank, dataset_kwargs, cache, device, num_gpus, G_kwargs):
+                #         self.rank = rank
+                #         self.dataset_kwargs = dataset_kwargs
+                #         self.cache = cache
+                #         self.device = device
+                #         self.num_gpus = num_gpus
+                #         self.G_kwargs = G_kwargs
+                #         self.progress = None
+                # result_dict = metric_main.calc_metric(metric=metric, G=G_ema,
+                #     dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
+                # opts = Opts(rank, training_set_kwargs, False, device, num_gpus, G_kwargs)
+                # fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
+                # print("=" * 100)
+                # print(fid)
+                # print("=" * 100)
                 # with open(metric_path, "a") as myfile:
                 #     myfile.write("appended text")
 
@@ -462,34 +464,34 @@ def training_loop(
                 del images, z, label
                 torch.cuda.empty_cache()
 
-        # # Save network snapshot.
-        # snapshot_pkl = None
-        # snapshot_data = None
-        # if (network_snapshot_ticks is not None) and (done or cur_tick % network_snapshot_ticks == 0):
-        #     snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
-        #     for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
-        #         if module is not None:
-        #             if num_gpus > 1:
-        #                 misc.check_ddp_consistency(module, ignore_regex=r'.*\.w_avg')
-        #             module = copy.deepcopy(module).eval().requires_grad_(False).cpu()
-        #         snapshot_data[name] = module
-        #         del module # conserve memory
-        #     snapshot_pkl = os.path.join(run_dir, f'network-snapshot-{cur_nimg//1000:06d}.pkl')
-        #     if rank == 0:
-        #         with open(snapshot_pkl, 'wb') as f:
-        #             pickle.dump(snapshot_data, f)
+        # Save network snapshot.
+        snapshot_pkl = None
+        snapshot_data = None
+        if (network_snapshot_ticks is not None) and (done or cur_tick % network_snapshot_ticks == 0):
+            snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
+            for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
+                if module is not None:
+                    if num_gpus > 1:
+                        misc.check_ddp_consistency(module, ignore_regex=r'.*\.w_avg')
+                    module = copy.deepcopy(module).eval().requires_grad_(False).cpu()
+                snapshot_data[name] = module
+                del module # conserve memory
+            snapshot_pkl = os.path.join(run_dir, f'network-snapshot-{cur_nimg//1000:06d}.pkl')
+            if rank == 0:
+                with open(snapshot_pkl, 'wb') as f:
+                    pickle.dump(snapshot_data, f)
 
-        # # Evaluate metrics.
-        # if (snapshot_data is not None) and (len(metrics) > 0):
-        #     if rank == 0:
-        #         print('Evaluating metrics...')
-        #     for metric in metrics:
-        #         result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
-        #             dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
-        #         if rank == 0:
-        #             metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
-        #         stats_metrics.update(result_dict.results)
-        # del snapshot_data # conserve memory
+        # Evaluate metrics.
+        if (snapshot_data is not None) and (len(metrics) > 0):
+            if rank == 0:
+                print('Evaluating metrics...')
+            for metric in metrics:
+                result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
+                    dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device, dataset = training_set, encode = encode)
+                if rank == 0:
+                    metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
+                stats_metrics.update(result_dict.results)
+        del snapshot_data # conserve memory
 
         # Collect statistics.
         for phase in phases:
