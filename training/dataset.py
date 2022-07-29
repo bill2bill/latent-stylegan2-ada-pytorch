@@ -171,14 +171,10 @@ class ImageFolderDataset(Dataset):
     def __init__(self,
         path,                        # Path to directory or zip.
         resolution = None,           # Ensure specific resolution, None = highest available.
-        ae = None,
-        device = 'cuda:0',
         **super_kwargs              # Additional arguments for the Dataset base class.
     ):
         self._path = path
         self._zipfile = None
-        self._ae = ae
-        self._device = device
 
         if os.path.isdir(self._path):
             self._type = 'dir'
@@ -197,16 +193,11 @@ class ImageFolderDataset(Dataset):
         name = os.path.splitext(os.path.basename(self._path))[0]
 
         raw_image = self._load_raw_image(0)
-        if ae:
-            # raw_image = torch.HalfTensor(raw_image).to(self._device)
-            raw_image = torch.FloatTensor(raw_image).to(self._device)
-            
-            raw_image = ae.encode(torch.unsqueeze(raw_image, 0))[0].cpu().detach().numpy()
 
         raw_shape = [len(self._image_fnames)] + list(raw_image.shape)
 
         # remove check if encoded as image size will be different
-        if self._ae is None and resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
+        if resolution is not None and (raw_shape[2] != resolution or raw_shape[3] != resolution):
             raise IOError('Image files do not match the specified resolution')
 
         super().__init__(name=name, raw_shape=raw_shape, **super_kwargs)

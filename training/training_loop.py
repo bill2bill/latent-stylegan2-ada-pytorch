@@ -421,29 +421,29 @@ def training_loop(
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             if rank == 0:
                 print('Saving snapshot...')
-            with torch.no_grad():
-                num = 30
-                label = torch.zeros([num, G.c_dim], device=device)
-                z = torch.from_numpy(np.random.randn(num, G.z_dim)).to(device)
-                images = G_ema(z, label, noise_mode='const')
-                out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
-                if encode:
-                    images = training_set.decode(images)
-                images = images.cpu().detach()
+                with torch.no_grad():
+                    num = 30
+                    label = torch.zeros([num, G.c_dim], device=device)
+                    z = torch.from_numpy(np.random.randn(num, G.z_dim)).to(device)
+                    images = G_ema(z, label, noise_mode='const')
+                    out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
+                    if encode:
+                        images = training_set.decode(images)
+                    images = images.cpu().detach()
 
-                # Save individual images
-                fake_image_dir = os.path.join(run_dir, f'{cur_nimg//1000:06d}')
-                if not os.path.exists(fake_image_dir):
-                    os.makedirs(fake_image_dir)
-                for idx, image in enumerate(images):
-                    img = parse_img(image, drange=[-1,1])
-                    path = os.path.join(fake_image_dir, f'{idx}.png')
-                    img.save(path)
+                    # Save individual images
+                    fake_image_dir = os.path.join(run_dir, f'{cur_nimg//1000:06d}')
+                    if not os.path.exists(fake_image_dir):
+                        os.makedirs(fake_image_dir)
+                    for idx, image in enumerate(images):
+                        img = parse_img(image, drange=[-1,1])
+                        path = os.path.join(fake_image_dir, f'{idx}.png')
+                        img.save(path)
 
-                # Save grid of images
-                save_image_grid(images, out_path, drange=[-1,1], grid_size=(10, 3))
-                del images, z, label
-                torch.cuda.empty_cache()
+                    # Save grid of images
+                    save_image_grid(images, out_path, drange=[-1,1], grid_size=(10, 3))
+                    del images, z, label
+                    torch.cuda.empty_cache()
 
         # Save network snapshot.
         snapshot_pkl = None

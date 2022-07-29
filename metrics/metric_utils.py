@@ -187,6 +187,8 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
         dataset_kwargs.resolution = None
         dataset_kwargs.use_labels = None
         dataset_kwargs.max_size = None
+        dataset_kwargs.encode = False
+        dataset_kwargs.encode = False
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     if data_loader_kwargs is None:
@@ -257,7 +259,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
         if opts.encode:
-            img = dataset.decode(img).clamp(-1, 1)
+            img = dataset.decode(img).clamp(-1, 1).to(opts.device)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 
