@@ -14,6 +14,7 @@ https://github.com/bioinf-jku/TTUR/blob/master/fid.py"""
 import numpy as np
 import scipy.linalg
 from . import metric_utils
+import copy
 
 #----------------------------------------------------------------------------
 
@@ -23,7 +24,7 @@ def compute_fid(opts, max_real, num_gen):
     detector_kwargs = dict(return_features=True) # Return raw features before the softmax layer.
 
     mu_real, sigma_real = metric_utils.compute_feature_stats_for_dataset(
-        opts=opts, detector_url=detector_url, detector_kwargs=detector_kwargs,
+        opts=copy.deepcopy(opts), detector_url=detector_url, detector_kwargs=detector_kwargs,
         rel_lo=0, rel_hi=0, capture_mean_cov=True, max_items=max_real).get_mean_cov()
 
     mu_gen, sigma_gen = metric_utils.compute_feature_stats_for_generator(
