@@ -6,6 +6,7 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+from base64 import encode
 import os
 import time
 import hashlib
@@ -19,7 +20,7 @@ import dnnlib
 #----------------------------------------------------------------------------
 
 class MetricOptions:
-    def __init__(self, G=None, G_kwargs={}, dataset_kwargs={}, num_gpus=1, rank=0, device=None, progress=None, cache=True):
+    def __init__(self, G=None, G_kwargs={}, dataset_kwargs={}, num_gpus=1, rank=0, device=None, progress=None, cache=True, encode = False, dataset = None):
         assert 0 <= rank < num_gpus
         self.G              = G
         self.G_kwargs       = dnnlib.EasyDict(G_kwargs)
@@ -29,6 +30,8 @@ class MetricOptions:
         self.device         = device if device is not None else torch.device('cuda', rank)
         self.progress       = progress.sub() if progress is not None and rank == 0 else ProgressMonitor()
         self.cache          = cache
+        self.encode         = encode
+        self.dataset        = dataset
 
 #----------------------------------------------------------------------------
 
@@ -231,21 +234,22 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
 #----------------------------------------------------------------------------
 
-def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, batch_gen=None, jit=False, G = None, dataset = None, encode = False, **stats_kwargs):
+def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, batch_gen=None, jit=False, **stats_kwargs):
     if batch_gen is None:
         batch_gen = min(batch_size, 4)
     assert batch_size % batch_gen == 0
 
     # Setup generator and load labels.
-    if G is None:
-        G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
-    if dataset is None:
+    G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
+    if opts.dataset is None:
         dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+    else:
+        dataset = opts.dataset
 
     # Image generation func.
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
-        if encode:
+        if opts.encode:
             img = dataset.decode(img).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img

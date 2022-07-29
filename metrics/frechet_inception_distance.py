@@ -17,7 +17,7 @@ from . import metric_utils
 
 #----------------------------------------------------------------------------
 
-def compute_fid(opts, max_real, num_gen, G = None, dataset = None, encode = False):
+def compute_fid(opts, max_real, num_gen):
     # Direct TorchScript translation of http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
     detector_url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/inception-2015-12-05.pt'
     detector_kwargs = dict(return_features=True) # Return raw features before the softmax layer.
@@ -28,7 +28,7 @@ def compute_fid(opts, max_real, num_gen, G = None, dataset = None, encode = Fals
 
     mu_gen, sigma_gen = metric_utils.compute_feature_stats_for_generator(
         opts=opts, detector_url=detector_url, detector_kwargs=detector_kwargs,
-        rel_lo=0, rel_hi=1, capture_mean_cov=True, max_items=num_gen, G=G, dataset=dataset, encode=encode).get_mean_cov()
+        rel_lo=0, rel_hi=1, capture_mean_cov=True, max_items=num_gen).get_mean_cov()
 
     if opts.rank != 0:
         return float('nan')
