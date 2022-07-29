@@ -209,6 +209,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
             torch.distributed.broadcast(tensor=flag, src=0)
             flag = (float(flag.cpu()) != 0)
 
+        print(cache_file)
         print(os.path.isfile(cache_file))
         print(flag)
         # Load.
