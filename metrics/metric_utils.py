@@ -241,7 +241,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
 
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
-    if opts.dataset is None:
+    if opts.dataset is None and not opts.encode:
         dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
     else:
         dataset = opts.dataset

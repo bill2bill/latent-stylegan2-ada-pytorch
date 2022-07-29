@@ -419,6 +419,8 @@ def training_loop(
 
         # Save image snapshot.
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
+            if rank == 0:
+                print('Saving snapshot...')
             with torch.no_grad():
                 num = 30
                 label = torch.zeros([num, G.c_dim], device=device)
@@ -428,27 +430,6 @@ def training_loop(
                 if encode:
                     images = training_set.decode(images)
                 images = images.cpu().detach()
-
-                # Calculate FID
-                # metric_path = os.path.join(run_dir, f'metrics.csv')
-                # class Opts():
-                #     def __init__(self, rank, dataset_kwargs, cache, device, num_gpus, G_kwargs):
-                #         self.rank = rank
-                #         self.dataset_kwargs = dataset_kwargs
-                #         self.cache = cache
-                #         self.device = device
-                #         self.num_gpus = num_gpus
-                #         self.G_kwargs = G_kwargs
-                #         self.progress = None
-                # result_dict = metric_main.calc_metric(metric=metric, G=G_ema,
-                #     dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
-                # opts = Opts(rank, training_set_kwargs, False, device, num_gpus, G_kwargs)
-                # fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=50000, G = G, dataset = training_set, encode = encode)
-                # print("=" * 100)
-                # print(fid)
-                # print("=" * 100)
-                # with open(metric_path, "a") as myfile:
-                #     myfile.write("appended text")
 
                 # Save individual images
                 fake_image_dir = os.path.join(run_dir, f'{cur_nimg//1000:06d}')
@@ -468,6 +449,8 @@ def training_loop(
         snapshot_pkl = None
         snapshot_data = None
         if (network_snapshot_ticks is not None) and (done or cur_tick % network_snapshot_ticks == 0):
+            if rank == 0:
+                print('Snapshot data...')
             snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
                 if module is not None:
