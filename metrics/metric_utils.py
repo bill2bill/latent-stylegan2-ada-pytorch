@@ -16,6 +16,7 @@ import uuid
 import numpy as np
 import torch
 import dnnlib
+from training.dataset import EncodedDataset
 
 #----------------------------------------------------------------------------
 
@@ -31,7 +32,6 @@ class MetricOptions:
         self.progress       = progress.sub() if progress is not None and rank == 0 else ProgressMonitor()
         self.cache          = cache
         self.encode         = encode
-        self.dataset        = dataset
 
 #----------------------------------------------------------------------------
 
@@ -250,16 +250,16 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
 
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
-    if opts.dataset is None and not opts.encode:
-        dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
+    if opts.encode:
+        dataset = EncodedDataset(**opts.dataset_kwargs)
     else:
-        dataset = opts.dataset
+        dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
 
     # Image generation func.
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
         if opts.encode:
-            img = dataset.decode(img, device = opts.device).clamp(-1, 1)
+            img = dataset.decode(img).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 
