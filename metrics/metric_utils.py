@@ -12,7 +12,6 @@ import time
 import hashlib
 import pickle
 import copy
-from types import NoneType
 import uuid
 import numpy as np
 import torch
