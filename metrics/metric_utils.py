@@ -182,14 +182,12 @@ class ProgressMonitor:
 
 def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, **stats_kwargs):
     dataset_kwargs = opts.dataset_kwargs
-    if opts.cache:
-        # Choose cache file name.
-        args = dict(dataset_kwargs=dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
     if opts.encode:
         # Dataset needs to be reset
         dataset_kwargs.resolution = None
         dataset_kwargs.use_labels = None
         dataset_kwargs.max_size = None
+
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     
     if data_loader_kwargs is None:
@@ -199,12 +197,15 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
     cache_file = None
     if opts.cache:
         # Choose cache file name.
+        args = dict(dataset_kwargs=dataset_kwargs, detector_url=detector_url, detector_kwargs=detector_kwargs, stats_kwargs=stats_kwargs)
         md5 = hashlib.md5(repr(sorted(args.items())).encode('utf-8'))
         cache_tag = f'{dataset.name}-{get_feature_detector_name(detector_url)}-{md5.hexdigest()}'
         cache_file = dnnlib.make_cache_dir_path('gan-metrics', cache_tag + '.pkl')
 
         # Check if the file exists (all processes must agree).
         flag = os.path.isfile(cache_file) if opts.rank == 0 else False
+        print(cache_file)
+        print(os.path.isfile(cache_file))
         if opts.num_gpus > 1:
             flag = torch.as_tensor(flag, dtype=torch.float32, device=opts.device)
             torch.distributed.broadcast(tensor=flag, src=0)
