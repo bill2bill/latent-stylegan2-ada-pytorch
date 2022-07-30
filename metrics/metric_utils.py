@@ -245,7 +245,7 @@ def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_l
 
 def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, batch_gen=None, jit=False, **stats_kwargs):
     if opts.encode:
-        batch_size = int(batch_size * 0.5)
+        batch_size = int(batch_size * 0.75)
     if batch_gen is None:
         batch_gen = min(batch_size, 4)
     assert batch_size % batch_gen == 0
@@ -278,18 +278,18 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     # Main loop.
     while not stats.is_full():
         images = []
-        length = batch_size // batch_gen
-        for _i in range(length):
+        for _i in range(batch_size // batch_gen):
             z = torch.randn([batch_gen, G.z_dim], device=opts.device)
             c = [dataset.get_label(np.random.randint(len(dataset))) for _i in range(batch_gen)]
             c = torch.from_numpy(np.stack(c)).pin_memory().to(opts.device)
             images.append(run_generator(z, c))
-            print(_i, length)
+            del z, c
         images = torch.cat(images)
         if images.shape[1] == 1:
             images = images.repeat([1, 3, 1, 1])
         features = detector(images, **detector_kwargs)
         stats.append_torch(features, num_gpus=opts.num_gpus, rank=opts.rank)
+        print(stats.num_items, stats.max_items)
         if opts.progress is not None:
             progress.update(stats.num_items)
     return stats
