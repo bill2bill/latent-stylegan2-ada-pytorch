@@ -291,6 +291,8 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
         stats.append_torch(features, num_gpus=opts.num_gpus, rank=opts.rank)
         if opts.progress is not None:
             progress.update(stats.num_items)
+    del dataset, G
+    torch.cuda.empty_cache()
     return stats
 
 #----------------------------------------------------------------------------
