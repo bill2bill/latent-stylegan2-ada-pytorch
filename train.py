@@ -111,13 +111,6 @@ def setup_training_loop_kwargs(
 
     args.encode = encode
 
-    # ------------------------------------
-    # Pretrained models
-    # -----------------------------------
-    
-    # # Autoencoder setup
-    # args.autoencoder = Autoencoder(gpus)
-
     # -----------------------------------
     # Dataset: data, cond, subset, mirror
     # -----------------------------------
