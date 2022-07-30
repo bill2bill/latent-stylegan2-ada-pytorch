@@ -278,11 +278,13 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     # Main loop.
     while not stats.is_full():
         images = []
-        for _i in range(batch_size // batch_gen):
+        length = batch_size // batch_gen
+        for _i in range(length):
             z = torch.randn([batch_gen, G.z_dim], device=opts.device)
             c = [dataset.get_label(np.random.randint(len(dataset))) for _i in range(batch_gen)]
             c = torch.from_numpy(np.stack(c)).pin_memory().to(opts.device)
             images.append(run_generator(z, c))
+            print(_i, length)
         images = torch.cat(images)
         if images.shape[1] == 1:
             images = images.repeat([1, 3, 1, 1])
