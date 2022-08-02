@@ -292,11 +292,12 @@ def setup_training_loop_kwargs(
     if augpipe is None:
         augpipe = 'bgc'
     else:
-        if aug == 'noaug':
-            raise UserError('--augpipe cannot be specified with --aug=noaug')
+        # if aug == 'noaug':
+        #     raise UserError('--augpipe cannot be specified with --aug=noaug')
         desc += f'-{augpipe}'
 
     augpipe_specs = {
+        'noaug':  dict(),
         'blit':   dict(xflip=1, rotate90=1, xint=1),
         'geom':   dict(scale=1, rotate=1, aniso=1, xfrac=1),
         'color':  dict(brightness=1, contrast=1, lumaflip=1, hue=1, saturation=1),
@@ -311,8 +312,9 @@ def setup_training_loop_kwargs(
     }
 
     assert augpipe in augpipe_specs
-    if aug != 'noaug':
-        args.augment_kwargs = dnnlib.EasyDict(class_name='training.augment.AugmentPipe', **augpipe_specs[augpipe])
+    aug_class_name = 'training.augment.AugmentPipe' if aug != 'noaug' else 'training.augment.NoAugmentPipe'
+    # if aug != 'noaug':
+    args.augment_kwargs = dnnlib.EasyDict(class_name=aug_class_name, **augpipe_specs[augpipe])
 
     # ----------------------------------
     # Transfer learning: resume, freezed
