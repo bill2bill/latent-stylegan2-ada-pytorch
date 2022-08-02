@@ -54,6 +54,7 @@ def setup_training_loop_kwargs(
     cfg        = None, # Base config: 'auto' (default), 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar'
     gamma      = None, # Override R1 gamma: <float>
     kimg       = None, # Override training duration: <int>
+    lrate      = None, # Override learning rate: <float>
     batch      = None, # Override batch size: <int>
 
     # Discriminator augmentation.
@@ -202,8 +203,15 @@ def setup_training_loop_kwargs(
     args.G_kwargs.synthesis_kwargs.conv_clamp = args.D_kwargs.conv_clamp = 256 # clamp activations to avoid float16 overflow
     args.D_kwargs.epilogue_kwargs.mbstd_group_size = spec.mbstd
 
+    if lrate is not None:
+        assert isinstance(lrate, float)
+        if not lrate >= 0:
+            raise UserError('--lrate must be non-negative')
+        desc += f'-lrate{gamma:g}'
+        spec.lrate = lrate
+
     args.G_opt_kwargs = dnnlib.EasyDict(class_name='torch.optim.Adam', lr=spec.lrate, betas=[0,0.99], eps=1e-8)
-    args.D_opt_kwargs = dnnlib.EasyDict(class_name='torch.optim.Adam', lr=spec.lrate * 0.7, betas=[0,0.99], eps=1e-8)
+    args.D_opt_kwargs = dnnlib.EasyDict(class_name='torch.optim.Adam', lr=spec.lrate, betas=[0,0.99], eps=1e-8)
     args.loss_kwargs = dnnlib.EasyDict(class_name='training.loss.StyleGAN2Loss', r1_gamma=spec.gamma)
 
     args.total_kimg = spec.kimg
@@ -438,6 +446,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--cfg', help='Base config [default: auto]', type=click.Choice(['auto', 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar']))
 @click.option('--gamma', help='Override R1 gamma', type=float)
 @click.option('--kimg', help='Override training duration', type=int, metavar='INT')
+@click.option('--lrate', help='Override learning rate', type=int, metavar='FLOAT')
 @click.option('--batch', help='Override batch size', type=int, metavar='INT')
 
 # Discriminator augmentation.
