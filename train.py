@@ -207,7 +207,7 @@ def setup_training_loop_kwargs(
         assert isinstance(lrate, float)
         if not lrate >= 0:
             raise UserError('--lrate must be non-negative')
-        desc += f'-lrate{gamma:g}'
+        desc += f'-lrate{lrate:g}'
         spec.lrate = lrate
 
     args.G_opt_kwargs = dnnlib.EasyDict(class_name='torch.optim.Adam', lr=spec.lrate, betas=[0,0.99], eps=1e-8)
