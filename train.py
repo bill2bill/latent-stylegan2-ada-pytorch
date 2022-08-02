@@ -292,12 +292,11 @@ def setup_training_loop_kwargs(
     if augpipe is None:
         augpipe = 'bgc'
     else:
-        # if aug == 'noaug':
-        #     raise UserError('--augpipe cannot be specified with --aug=noaug')
+        if aug == 'noaug':
+            raise UserError('--augpipe cannot be specified with --aug=noaug')
         desc += f'-{augpipe}'
 
     augpipe_specs = {
-        'noaug':  dict(),
         'blit':   dict(xflip=1, rotate90=1, xint=1),
         'geom':   dict(scale=1, rotate=1, aniso=1, xfrac=1),
         'color':  dict(brightness=1, contrast=1, lumaflip=1, hue=1, saturation=1),
@@ -312,9 +311,8 @@ def setup_training_loop_kwargs(
     }
 
     assert augpipe in augpipe_specs
-    aug_class_name = 'training.augment.AugmentPipe' if aug != 'noaug' else 'training.augment.NoAugmentPipe'
-    # if aug != 'noaug':
-    args.augment_kwargs = dnnlib.EasyDict(class_name=aug_class_name, **augpipe_specs[augpipe])
+    if aug != 'noaug':
+        args.augment_kwargs = dnnlib.EasyDict(class_name='training.augment.AugmentPipe', **augpipe_specs[augpipe])
 
     # ----------------------------------
     # Transfer learning: resume, freezed
@@ -455,7 +453,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--aug', help='Augmentation mode [default: ada]', type=click.Choice(['noaug', 'ada', 'fixed']))
 @click.option('--p', help='Augmentation probability for --aug=fixed', type=float)
 @click.option('--target', help='ADA target value for --aug=ada', type=float)
-@click.option('--augpipe', help='Augmentation pipeline [default: bgc]', type=click.Choice(['blit', 'geom', 'color', 'filter', 'noise', 'cutout', 'bg', 'bgc', 'bgcf', 'bgcfn', 'bgcfnc', 'noaug']))
+@click.option('--augpipe', help='Augmentation pipeline [default: bgc]', type=click.Choice(['blit', 'geom', 'color', 'filter', 'noise', 'cutout', 'bg', 'bgc', 'bgcf', 'bgcfn', 'bgcfnc']))
 
 # Transfer learning.
 @click.option('--resume', help='Resume training [default: noresume]', metavar='PKL')
