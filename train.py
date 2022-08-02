@@ -446,7 +446,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--cfg', help='Base config [default: auto]', type=click.Choice(['auto', 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar']))
 @click.option('--gamma', help='Override R1 gamma', type=float)
 @click.option('--kimg', help='Override training duration', type=int, metavar='INT')
-@click.option('--lrate', help='Override learning rate', type=int, metavar='FLOAT')
+@click.option('--lrate', help='Override learning rate', type=float, metavar='FLOAT')
 @click.option('--batch', help='Override batch size', type=int, metavar='INT')
 
 # Discriminator augmentation.
