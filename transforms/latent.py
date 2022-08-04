@@ -41,8 +41,8 @@ DEFAULT_AE_CONFIG = {
     "n_embed": 8192,
     "monitor": "val/rec_loss",
     "ddconfig": {
-      "double_z": True,
-      "z_channels": 3,
+      "double_z": False,
+      "z_channels": 6,
       "resolution": 256,
       "in_channels": 3,
       "out_ch": 3,
