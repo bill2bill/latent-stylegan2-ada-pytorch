@@ -37,31 +37,30 @@ from torch_utils.misc import get_cache_dir
 # }
 #VQ-f4
 DEFAULT_AE_CONFIG = {
-    "embed_dim": 3,
-    "n_embed": 8192,
-    "monitor": "val/rec_loss",
-    "ddconfig": {
-      "double_z": True,
-      "z_channels": 3,
-      "resolution": 256,
-      "in_channels": 3,
-      "out_ch": 3,
-      "ch": 128,
-      "ch_mult": [1,2,4],
-      "num_res_blocks": 2,
-      "attn_resolutions": [],
-      "dropout": 0.0
-    },
-    "lossconfig": {
-      "target": "taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator",
-      "params": {
-        "disc_conditional": False,
-        "disc_in_channels": 3,
-        "disc_start": 0,
-        "disc_weight": 0.75,
-        "codebook_weight": 1.0
-      }
-    }
+  "ddconfig": {
+    "double_z": False,
+    "z_channels": 3,
+    "resolution": 256,
+    "in_channels": 3,
+    "out_ch": 3,
+    "ch": 128,
+    "ch_mult": [1,2,4],
+    "num_res_blocks": 2,
+    "attn_resolutions": [],
+    "dropout": 0.0
+  },
+  "lossconfig": {
+        "target": "taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator",
+        "params": {
+          "disc_conditional": False,
+          "disc_in_channels": 3,
+          "disc_start": 0,
+          "disc_weight": 0.75,
+          "codebook_weight": 1.0
+        }
+  },
+  "n_embed": 8192,
+  "embed_dim": 3
 }
 CACHE_MODEL_DIR = 'pretrained_models'
 
@@ -83,10 +82,10 @@ def download_url(url, save_path, chunk_size=128):
         for chunk in r.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
 
-def download_pre_trained_ae(url, folder):
+def download_pre_trained_ae(url, prefix, folder):
     cache_dir = get_cache_dir()
     output_dir = f"{cache_dir}/{folder}"
-    path = f"{output_dir}/model.ckpt"
+    path = f"{output_dir}/{prefix}-model.ckpt"
     tmp_path = './tmp'
     if not os.path.exists(path):
         if not os.path.exists(output_dir):
@@ -101,18 +100,18 @@ def download_pre_trained_ae(url, folder):
             os.remove(tmp_path)
 
 def setup():
-    # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
-    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", CACHE_MODEL_DIR)
+    # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", "kl", CACHE_MODEL_DIR)
+    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", "vq", CACHE_MODEL_DIR)
 
-class VQModelInterface2(VQModelInterface):
-    def __init__(self, *args, **kwargs):
-        self.ddconfig = kwargs['ddconfig']
-        super().__init__(*args, **kwargs)
+# class VQModelInterface2(VQModelInterface):
+#     def __init__(self, *args, **kwargs):
+#         self.ddconfig = kwargs['ddconfig']
+#         super().__init__(*args, **kwargs)
     
-    def init_from_ckpt(self, path, ignore_keys=list()):
-        #Hacky Fix
-        self.quant_conv = torch.nn.Conv2d(2 * self.ddconfig["z_channels"], 2 * self.embed_dim, 1)
-        super().init_from_ckpt(path, ignore_keys = ignore_keys)
+#     def init_from_ckpt(self, path, ignore_keys=list()):
+#         #Hacky Fix
+#         self.quant_conv = torch.nn.Conv2d(2 * self.ddconfig["z_channels"], 2 * self.embed_dim, 1)
+#         super().init_from_ckpt(path, ignore_keys = ignore_keys)
 
 class Autoencoder:
     def __init__(self, device, ngpu = None):
@@ -120,7 +119,7 @@ class Autoencoder:
 
         print(f'Creating Autoencoder on device: {device}')
         # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
-        model = VQModelInterface2(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
+        model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         model = model.to(torch.device('cuda', 0))
 
         def parralel(model):
