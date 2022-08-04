@@ -7,31 +7,61 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ldm.models.autoencoder import AutoencoderKL
+# from ldm.models.autoencoder import AutoencoderKL
+from ldm.models.autoencoder import VQModel
 from torch_utils.misc import get_cache_dir
 
+# KL-f4
+# DEFAULT_AE_CONFIG = {
+#     "ddconfig": {
+#         "double_z": True,
+#         "z_channels": 3,
+#         "resolution": 256,
+#         "in_channels": 3,
+#         "out_ch": 3,
+#         "ch": 128,
+#         "ch_mult": [1,2,4],
+#         "num_res_blocks": 2,
+#         "attn_resolutions": [],
+#         "dropout": 0.0
+#     },
+#     "lossconfig": {
+#         "target": "ldm.modules.losses.LPIPSWithDiscriminator",
+#         "params": {
+#             "disc_start": 50001,
+#             "kl_weight": 1.0e-06,
+#             "disc_weight": 0.5
+#         }
+#     },
+#     "embed_dim": 3
+# }
+#VQ-f4
 DEFAULT_AE_CONFIG = {
+    "embed_dim": 3,
+    "n_embed": 8192,
+    "monitor": "val/rec_loss",
     "ddconfig": {
-        "double_z": True,
-        "z_channels": 3,
-        "resolution": 256,
-        "in_channels": 3,
-        "out_ch": 3,
-        "ch": 128,
-        "ch_mult": [1,2,4],
-        "num_res_blocks": 2,
-        "attn_resolutions": [],
-        "dropout": 0.0
+      "double_z": False,
+      "z_channels": 3,
+      "resolution": 256,
+      "in_channels": 3,
+      "out_ch": 3,
+      "ch": 128,
+      "ch_mult": [1,2,4],
+      "num_res_blocks": 2,
+      "attn_resolutions": [],
+      "dropout": 0.0
     },
     "lossconfig": {
-        "target": "ldm.modules.losses.LPIPSWithDiscriminator",
-        "params": {
-            "disc_start": 50001,
-            "kl_weight": 1.0e-06,
-            "disc_weight": 0.5
-        }
-    },
-    "embed_dim": 3
+      "target": "taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator",
+      "params": {
+        "disc_conditional": False,
+        "disc_in_channels": 3,
+        "disc_start": 0,
+        "disc_weight": 0.75,
+        "codebook_weight": 1.0
+      }
+    }
 }
 CACHE_MODEL_DIR = 'pretrained_models'
 
@@ -72,14 +102,16 @@ def download_pre_trained_ae(url, folder):
             os.remove(tmp_path)
 
 def setup():
-    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
+    # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
+    download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", CACHE_MODEL_DIR)
 
 class Autoencoder:
     def __init__(self, device, ngpu = None):
         self.device = device
 
         print(f'Creating Autoencoder on device: {device}')
-        model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
+        # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
+        model = VQModel(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["n_embed"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         # model = model.half()
         model = model.to(torch.device('cuda', 0))
 
