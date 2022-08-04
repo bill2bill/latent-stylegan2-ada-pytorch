@@ -137,6 +137,10 @@ class Autoencoder:
         model.loss = parralel(model.loss)
         model.quant_conv = parralel(model.quant_conv)
         model.post_quant_conv = parralel(model.post_quant_conv)
+
+        #for vq ae
+        model.quantize = parralel(model.quantize)
+
         self._model = model
 
     # batch, channel, width, height
