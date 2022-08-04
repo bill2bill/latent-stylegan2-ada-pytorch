@@ -106,8 +106,8 @@ def setup():
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", CACHE_MODEL_DIR)
 
 class VQModelInterface2(VQModelInterface):
-    def __init__(self, *args, ddconfig, **kwargs):
-        self.ddconfig = ddconfig
+    def __init__(self, *args, **kwargs):
+        self.ddconfig = kwargs['ddconfig']
         super().__init__(*args, **kwargs)
     
     def init_from_ckpt(self, path, ignore_keys=list()):
