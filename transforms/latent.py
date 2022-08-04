@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 # from ldm.models.autoencoder import AutoencoderKL
-from ldm.models.autoencoder import VQModel
+from ldm.models.autoencoder import VQModelInterface
 from torch_utils.misc import get_cache_dir
 
 # KL-f4
@@ -111,7 +111,7 @@ class Autoencoder:
 
         print(f'Creating Autoencoder on device: {device}')
         # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
-        model = VQModel(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["n_embed"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
+        model = VQModelInterface(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["n_embed"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         # model = model.half()
         model = model.to(torch.device('cuda', 0))
 
