@@ -69,7 +69,6 @@ CACHE_MODEL_DIR = 'pretrained_models'
 # GAN Normalising contanstants
 
 norm = {
-    "mean": 0,
     "std": 70,
 }
 
@@ -122,7 +121,6 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         model = VQModelInterface2(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
-        # model = model.half()
         model = model.to(torch.device('cuda', 0))
 
         def parralel(model):
@@ -145,34 +143,16 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            encoded = self._model.encode(images).sample()
-            # encoded = encoded / norm['std']
-            # encoded = torch.clamp(encoded, -1., 1.)
-            #convert to range 0 - 1
-            # encoded = (encoded + 1) / 2
+            # encoded = self._model.encode(images).sample()
+            encoded = self._model.encode(images)
             return encoded
 
     # batch, channel, width, height
     def decode(self, latent):
         with torch.no_grad():
             assert(len(latent.shape) == 4)
-            # latent = (latent - 1) * 2
-            # latent = torch.clamp(latent, -1., 1.)
-            # latent = (latent - 1) * 2
             latent = latent * norm['std']
 
             return self._model.decode(latent)
-            # tensor_device = norm_latent.device
-            # norm_latent = norm_latent.type(torch.HalfTensor).to(tensor_device)
-
-            # # norm_latent = (norm_latent - 1) * 2
-            # # latent = norm_latent.to(self.device) * norm['std']
-            # latent = norm_latent
-            # decoded = self._model.decode(latent.to(self.device))
-            
-            # del latent
-            # torch.cuda.empty_cache()
-
-            # return decoded
 
 #----------------------------------------------------------------------------
