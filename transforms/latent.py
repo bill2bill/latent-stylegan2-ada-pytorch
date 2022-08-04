@@ -105,13 +105,23 @@ def setup():
     # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/kl-f4.zip", CACHE_MODEL_DIR)
     download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", CACHE_MODEL_DIR)
 
+class VQModelInterface2(VQModelInterface):
+    def __init__(self, *args, ddconfig, **kwargs):
+        self.ddconfig = ddconfig
+        super().__init__(*args, **kwargs)
+    
+    def init_from_ckpt(self, path, ignore_keys=list()):
+        #Hacky Fix
+        self.quant_conv = torch.nn.Conv2d(2 * self.ddconfig["z_channels"], 2 * self.embed_dim, 1)
+        super().init_from_ckpt(path, ignore_keys = ignore_keys)
+
 class Autoencoder:
     def __init__(self, device, ngpu = None):
         self.device = device
 
         print(f'Creating Autoencoder on device: {device}')
         # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
-        model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
+        model = VQModelInterface2(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         # model = model.half()
         model = model.to(torch.device('cuda', 0))
 
