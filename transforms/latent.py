@@ -97,6 +97,10 @@ def download_pre_trained_ae(url, prefix, folder):
         with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
             zip_ref.extractall(output_dir)
 
+        out_file = f'{output_dir}/model.ckpt'
+        if os.path.exists(out_file):
+            os.rename(out_file, path)
+
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
