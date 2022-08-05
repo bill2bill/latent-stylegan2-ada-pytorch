@@ -113,6 +113,8 @@ def setup():
 #         self.quant_conv = torch.nn.Conv2d(2 * self.ddconfig["z_channels"], 2 * self.embed_dim, 1)
 #         super().init_from_ckpt(path, ignore_keys = ignore_keys)
 
+750, 690, 560
+
 class Autoencoder:
     def __init__(self, device, ngpu = None):
         self.device = device
@@ -120,14 +122,18 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         # model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
         model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/model.ckpt")
-        model = model.to(torch.device('cuda', 0))
+        if ngpu is None:
+            model = model.to(device)
+        else:
+            model = model.to(torch.device('cuda', 0))
 
         def parralel(model):
             if ngpu is None:
-                model.requires_grad_(True)
-                model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-                model.requires_grad_(False)
-                return model
+                return model.to(device)
+                # model.requires_grad_(True)
+                # model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+                # model.requires_grad_(False)
+                # return model
             else:
                 return nn.DataParallel(model, list(range(ngpu)))
 
