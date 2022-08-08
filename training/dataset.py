@@ -304,7 +304,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             tsfm = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-                transforms.RandomHorizontalFlip(p=0.4)
+                transforms.RandomHorizontalFlip(p=0.2)
             ])
             dataset = ImageDataset(root=path, transform=tsfm)
             # TODO: images are still in a range of -2 to 2, maybe they should be divided to convert to range of -1 and 1
