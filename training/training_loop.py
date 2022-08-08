@@ -21,12 +21,10 @@ from torch_utils import training_stats
 from torch_utils.ops import conv2d_gradfix
 from torch_utils.ops import grid_sample_gradfix
 
-from metrics import frechet_inception_distance
-
 import legacy
 from metrics import metric_main
-from training.dataset import EncodedDataset
-from transforms.latent import Autoencoder
+
+from transforms.latent import STD_NORM
 
 #----------------------------------------------------------------------------
 
@@ -317,11 +315,10 @@ def training_loop(
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
 
-            # The Autoencoder converts data to float and attaches to the correct device
             if encode:
                 phase_real_img = torch.FloatTensor(phase_real_img).to(device)
-                #TODO: remove normalise constant - convert to linear layer
-                phase_real_img = phase_real_img / 70
+                #TODO: convert to linear layer rather than use normalisation constant
+                phase_real_img = phase_real_img / STD_NORM
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
                 phase_real_img = phase_real_img.split(batch_gpu)
             else:

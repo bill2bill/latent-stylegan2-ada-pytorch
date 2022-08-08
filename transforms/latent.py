@@ -70,9 +70,7 @@ PREFIX = 'kl'
 #----------------------------------------------------------------------------
 # GAN Normalising contanstants
 
-norm = {
-    "std": 70,
-}
+STD_NORM = 70
 
 #----------------------------------------------------------------------------
 # Converts images to a latent space. Then converts the latent space to a suitable range for GANs (-1 to 1)
@@ -109,8 +107,9 @@ def setup():
     # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", PREFIX, CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device, ngpu = None):
+    def __init__(self, device, ngpu = None, type = 'kl'):
         self.device = device
+        self.norm = STD_NORM
 
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
@@ -153,7 +152,7 @@ class Autoencoder:
     def decode(self, latent):
         with torch.no_grad():
             assert(len(latent.shape) == 4)
-            latent = latent * norm['std']
+            latent = latent * self.norm
 
             return self._model.decode(latent)
 

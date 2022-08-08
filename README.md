@@ -1,3 +1,33 @@
+## MSc Data Science - Sussex University - Final Project
+
+Training a state-of-the-art (SOTA) GAN at high-resolution requires thousands of GPU-hours and is unachievable without substantial high end GPU resources. This project aims to leverage the recent advances in pretrained autoencoders, which have made applying transformers and diffusion models for high-resolution image generation tractable and utilise them in speeding up existing state-of-the-art GAN training.
+
+The idea comes from the paper below, instead of using a Diffusion Model a GAN is used. The SOTA GAN chosen is the StyleGAN2-ADA.
+<br>
+Rombach1, R. Blattmann1, A. Lorenz1, D. Esser, P. Ommer, B<br>
+https://arxiv.org/pdf/2112.10752<br>
+
+Building on the already well implemented library for StyleGAN2-ADA, I have added features allowing for training in the latent domain.
+
+**Features**
+* --encode  -  A boolean flag that determines whether the data is encoded
+* --clear  -  A boolean flat that determines whether the cache is cleared
+* --lrate  -  A float which overides the default learning rate of the Generator and Discriminator
+
+The transforms/latent.py is where the Autoencoder wrapper class is located. Modifications can be made here to use other Autoencoders.
+
+I also made a custom encoder Dataset at training/dataset.py for creating an encoded cache and loading encoded data in batch.
+
+**Future Improvements**
+* Use a linear model to normalise the latent space to a range that the encoder can parse, instead of dividing by the contanst NORM_STD.
+* Clean up the code in the transforms/latent.py file, ie move file and cache functions to the utils directory.
+
+**Stats**
+
+I have saved some stats from running the model in different configurations in the example directory.
+
+**👇👇👇👇👇 original documentation below 👇👇👇👇👇**
+
 ## StyleGAN2-ADA &mdash; Official PyTorch implementation
 
 ![Teaser image](./docs/stylegan2-ada-teaser-1024x252.png)

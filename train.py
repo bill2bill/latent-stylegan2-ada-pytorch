@@ -22,9 +22,7 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
-from training.dataset import EncodedDataset
-
-from transforms.latent import Autoencoder, setup
+from transforms.latent import setup
 
 #----------------------------------------------------------------------------
 

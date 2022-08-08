@@ -113,13 +113,6 @@ def rotate2d_inv(theta, **kwargs):
 # All augmentations are disabled by default; individual augmentations can
 # be enabled by setting their probability multipliers to 1.
 
-class NoAugmentPipe(torch.nn.Module):
-    def __init__(self, **kwargs): 
-        super().__init__()
-
-    def forward(self, images, debug_percentile=None):
-        return images
-
 @persistence.persistent_class
 class AugmentPipe(torch.nn.Module):
     def __init__(self,

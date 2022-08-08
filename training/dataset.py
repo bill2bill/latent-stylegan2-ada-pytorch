@@ -319,6 +319,7 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._length = len(dataset)
 
             if clear:
+                print('Clearing encoded cache...')
                 shutil.rmtree(cache_dir)
 
             stamp = datetime.datetime.now()

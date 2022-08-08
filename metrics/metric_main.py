@@ -82,6 +82,7 @@ def report_metric(result_dict, run_dir=None, snapshot_pkl=None):
 @register_metric
 def fid50k_full(opts):
     opts.dataset_kwargs.update(max_size=None, xflip=False)
+    #TODO: i have changed the num_gen to 7000 from 50000 for GPU memory issues
     fid = frechet_inception_distance.compute_fid(opts, max_real=None, num_gen=7000)
     return dict(fid50k_full=fid)
 
@@ -114,6 +115,7 @@ def is50k(opts):
 @register_metric
 def fid50k(opts):
     opts.dataset_kwargs.update(max_size=None)
+    #TODO: i have changed the num_gen to 7000 from 50000 for GPU memory issues
     fid = frechet_inception_distance.compute_fid(opts, max_real=7000, num_gen=20000)
     return dict(fid50k=fid)
 
