@@ -256,6 +256,22 @@ class ImageFolderDataset(Dataset):
 
 #----------------------------------------------------------------------------
 
+class MultiDataset(Dataset):
+    def __init__(self, datasets):
+        self.datasets = datasets
+        self.sizes = [len(dataset) for dataset in datasets]
+        
+    def __getitem__(self, index):
+        total = 0
+        for idx, size in enumerate(self.sizes):
+            if index < total:
+                return datasets[idx][index - total - 1]
+            total = total + size
+        raise StopIteration
+    
+    def __len__(self):
+        return sum(list(self.sizes))
+
 class ImageDataset(Dataset):
     def __init__(self, root='.', transform=None):
         self.image_paths = list(map(lambda path: f"{root}/{path}", os.listdir(root)))
@@ -301,12 +317,18 @@ class EncodedDataset(torch.utils.data.Dataset):
             self._raw_shape = [self._length, 3, resolution, resolution]
         else:
             self.autoencoder = self._autoencoder()
-            tsfm = transforms.Compose([
+            tsfm1 = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-                transforms.RandomHorizontalFlip(p=0.4)
+                transforms.RandomHorizontalFlip(p=1)
             ])
-            dataset = ImageDataset(root=path, transform=tsfm)
+            dataset1 = ImageDataset(root=path, transform=tsfm1)
+            tsfm2 = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            dataset2 = ImageDataset(root=path, transform=tsfm2)
+            dataset = MultiDataset([dataset1, dataset2])
             # TODO: images are still in a range of -2 to 2, maybe they should be divided to convert to range of -1 and 1
 
             resolution = dataset[0].shape[1]
