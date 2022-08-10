@@ -258,13 +258,15 @@ class ImageFolderDataset(Dataset):
 
 class MultiDataset(Dataset):
     def __init__(self, datasets):
+        assert datasets is not None
+        assert len(datasets) > 0
         self.datasets = datasets
         self.sizes = [len(dataset) for dataset in datasets]
         
     def __getitem__(self, index):
         total = 0
         for idx, size in enumerate(self.sizes):
-            if index < total:
+            if index < total + size:
                 return self.datasets[idx][index - total]
             total = total + size
         raise StopIteration
