@@ -107,16 +107,13 @@ def setup():
     # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", PREFIX, CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device, ngpu = None, type = 'kl'):
+    def __init__(self, device, type = 'kl'):
         self.device = device
         self.norm = STD_NORM
 
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
         # model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
-        # if ngpu is None:
-        #     model = model.to(device)
-        # else:
         model = model.to(device)
 
         model.requires_grad_(True)
@@ -130,15 +127,13 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(images.shape) == 4)
             return self._model.module.encode(images).sample()
-            # encoded = self._model.encode(images)
-            # return encoded
+            # return self._model.encode(images)
 
     # batch, channel, width, height
     def decode(self, latent):
         with torch.no_grad():
             assert(len(latent.shape) == 4)
             latent = latent * self.norm
-
             return self._model.module.decode(latent)
 
 #----------------------------------------------------------------------------
