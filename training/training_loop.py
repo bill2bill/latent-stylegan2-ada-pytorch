@@ -240,7 +240,7 @@ def training_loop(
     else:
         autoencoder = None
     
-    loss = dnnlib.util.construct_class_by_name(device=device, autoencoder = , **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
+    loss = dnnlib.util.construct_class_by_name(device=device, autoencoder = autoencoder, **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
     phases = []
     for name, module, opt_kwargs, reg_interval in [('G', G, G_opt_kwargs, G_reg_interval), ('D', D, D_opt_kwargs, D_reg_interval)]:
         if reg_interval is None:
