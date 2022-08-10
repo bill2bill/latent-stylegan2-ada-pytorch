@@ -129,6 +129,7 @@ class StyleGAN2Loss(Loss):
                     #     r1_grads = torch.autograd.grad(outputs=[real_logits.sum()], inputs=[real_img_tmp], create_graph=True, only_inputs=True)[0]
                     # r1_penalty = r1_grads.square().sum([1,2,3])
                     # loss_Dr1 = r1_penalty * (self.r1_gamma / 2)
+                    #TODO: review
                     loss_Dr1 = 0
                     r1_penalty = 0
                     training_stats.report('Loss/r1_penalty', r1_penalty)
