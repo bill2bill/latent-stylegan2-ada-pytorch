@@ -124,10 +124,10 @@ class Autoencoder:
 
     # batch, channel, width, height
     def encode(self, images):
-        # with torch.no_grad():
-        assert(len(images.shape) == 4)
-        return self._model.module.encode(images).sample()
-        # return self._model.encode(images)
+        with torch.no_grad():
+            assert(len(images.shape) == 4)
+            return self._model.module.encode(images).sample()
+            # return self._model.encode(images)
 
     # batch, channel, width, height
     def decode(self, latent):

@@ -53,6 +53,8 @@ class StyleGAN2Loss(Loss):
             img = self.augment_pipe(img)
         if self.autoencoder is not None and encode:
             img = self.autoencoder.encode(img)
+            img = torch.tensor(img, requires_grad=True)
+            torch.cuda.empty_cache()
         with misc.ddp_sync(self.D, sync):
             logits = self.D(img, c)
         return logits
