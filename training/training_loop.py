@@ -325,8 +325,6 @@ def training_loop(
             if encode:
                 phase_real_img = autoencoder.encode(phase_real_img)
                 #TODO: convert to linear layer rather than use normalisation constant
-                if rank == 0:
-                    print(phase_real_img.shape)
                 phase_real_img = phase_real_img / STD_NORM
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
             else:
