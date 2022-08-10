@@ -265,7 +265,7 @@ class MultiDataset(Dataset):
         total = 0
         for idx, size in enumerate(self.sizes):
             if index < total:
-                return self.datasets[idx][index - total - 1]
+                return self.datasets[idx][index - total]
             total = total + size
         raise StopIteration
     
