@@ -327,6 +327,9 @@ def training_loop(
                 #TODO: convert to linear layer rather than use normalisation constant
                 phase_real_img = phase_real_img / STD_NORM
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
+                
+                if rank == 0:
+                    print(phase_real_img.shape)
                 phase_real_img = phase_real_img.split(batch_gpu)
             else:
                 phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
