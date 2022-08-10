@@ -114,7 +114,7 @@ class StyleGAN2Loss(Loss):
                 real_img_tmp = real_img.detach().requires_grad_(do_Dr1)
                 real_logits = self.run_D(real_img_tmp, real_c, sync=sync, encode = True)
                 # real_logits = real_logits.clone().detach().requires_grad_(do_Dr1)
-                real_logits = real_logits.detach().requires_grad_(do_Dr1).to(self.device)
+                # real_logits = real_logits.detach().to(self.device).requires_grad_(do_Dr1)
                 training_stats.report('Loss/scores/real', real_logits)
                 training_stats.report('Loss/signs/real', real_logits.sign())
 
