@@ -131,6 +131,7 @@ class Autoencoder:
             assert(len(images.shape) == 4)
             encoded = self._model.module.encode(images).sample()
             # encoded = self._model.encode(images)
+            print(encoded.shape)
             return encoded
 
     # batch, channel, width, height
