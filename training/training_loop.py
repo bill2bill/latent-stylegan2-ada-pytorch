@@ -427,7 +427,7 @@ def training_loop(
                 images = G_ema(z, label, noise_mode='const')
                 out_path = os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png')
                 if encode:
-                    images = training_set.decode(images)
+                    images = autoencoder.decode(images)
                 images = images.cpu().detach()
 
                 # Save individual images
@@ -471,7 +471,7 @@ def training_loop(
                 print('Evaluating metrics...')
             for metric in metrics:
                 result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
-                    dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device, encode = encode)
+                    dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device, encode = encode, autoencoder = autoencoder)
                 if rank == 0:
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
                 stats_metrics.update(result_dict.results)

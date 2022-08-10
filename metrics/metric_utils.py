@@ -16,12 +16,11 @@ import uuid
 import numpy as np
 import torch
 import dnnlib
-from training.dataset import EncodedDataset
 
 #----------------------------------------------------------------------------
 
 class MetricOptions:
-    def __init__(self, G=None, G_kwargs={}, dataset_kwargs={}, num_gpus=1, rank=0, device=None, progress=None, cache=True, encode = False, dataset = None):
+    def __init__(self, G=None, G_kwargs={}, dataset_kwargs={}, num_gpus=1, rank=0, device=None, progress=None, cache=True, encode = False, autoencoder = None):
         assert 0 <= rank < num_gpus
         self.G              = G
         self.G_kwargs       = dnnlib.EasyDict(G_kwargs)
@@ -32,6 +31,7 @@ class MetricOptions:
         self.progress       = progress.sub() if progress is not None and rank == 0 else ProgressMonitor()
         self.cache          = cache
         self.encode         = encode
+        self.autoencoder    = autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -258,7 +258,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
         if opts.encode:
-            img = dataset.decode(img, cache = True).to(opts.device).clamp(-1, 1)
+            img = opts.autoencoder.decode(img).to(opts.device).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 
