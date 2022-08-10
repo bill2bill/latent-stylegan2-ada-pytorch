@@ -235,10 +235,10 @@ def training_loop(
     if rank == 0:
         print('Setting up training phases...')
 
-    if encode:
-        autoencoder = Autoencoder(device)
-    else:
-        autoencoder = None
+    # if encode:
+    #     autoencoder = Autoencoder(device)
+    # else:
+    autoencoder = None
     
     loss = dnnlib.util.construct_class_by_name(device=device, autoencoder = autoencoder, **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
     phases = []
