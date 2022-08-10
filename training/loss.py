@@ -106,34 +106,35 @@ class StyleGAN2Loss(Loss):
             with torch.autograd.profiler.record_function('Dgen_backward'):
                 loss_Dgen.mean().mul(gain).backward()
 
-        # # Dmain: Maximize logits for real images.
-        # # Dr1: Apply R1 regularization.
-        # if do_Dmain or do_Dr1:
-        #     name = 'Dreal_Dr1' if do_Dmain and do_Dr1 else 'Dreal' if do_Dmain else 'Dr1'
-        #     with torch.autograd.profiler.record_function(name + '_forward'):
-        #         real_img_tmp = real_img.detach().requires_grad_(do_Dr1)
-        #         real_logits = self.run_D(real_img_tmp, real_c, sync=sync, encode = True)
-        #         # real_logits = real_logits.clone().detach().requires_grad_(do_Dr1)
-        #         # real_logits = real_logits.detach().to(self.device).requires_grad_(do_Dr1)
-        #         training_stats.report('Loss/scores/real', real_logits)
-        #         training_stats.report('Loss/signs/real', real_logits.sign())
+        # Dmain: Maximize logits for real images.
+        # Dr1: Apply R1 regularization.
+        if do_Dmain or do_Dr1:
+            name = 'Dreal_Dr1' if do_Dmain and do_Dr1 else 'Dreal' if do_Dmain else 'Dr1'
+            with torch.autograd.profiler.record_function(name + '_forward'):
+                real_img_tmp = real_img.detach().requires_grad_(do_Dr1)
+                real_logits = self.run_D(real_img_tmp, real_c, sync=sync, encode = True)
+                # real_logits = real_logits.clone().detach().requires_grad_(do_Dr1)
+                training_stats.report('Loss/scores/real', real_logits)
+                training_stats.report('Loss/signs/real', real_logits.sign())
 
-        #         loss_Dreal = 0
-        #         if do_Dmain:
-        #             loss_Dreal = torch.nn.functional.softplus(-real_logits) # -log(sigmoid(real_logits))
-        #             training_stats.report('Loss/D/loss', loss_Dgen + loss_Dreal)
+                loss_Dreal = 0
+                if do_Dmain:
+                    loss_Dreal = torch.nn.functional.softplus(-real_logits) # -log(sigmoid(real_logits))
+                    training_stats.report('Loss/D/loss', loss_Dgen + loss_Dreal)
 
-        #         loss_Dr1 = 0
-        #         if do_Dr1:
-        #             with torch.autograd.profiler.record_function('r1_grads'), conv2d_gradfix.no_weight_gradients():
-        #                 #TODO: i set allow_unused to True, i think this breaks recording of the gradients?? not too sure. #, allow_unused=True
-        #                 r1_grads = torch.autograd.grad(outputs=[real_logits.sum()], inputs=[real_img_tmp], create_graph=True, only_inputs=True)[0]
-        #             r1_penalty = r1_grads.square().sum([1,2,3])
-        #             loss_Dr1 = r1_penalty * (self.r1_gamma / 2)
-        #             training_stats.report('Loss/r1_penalty', r1_penalty)
-        #             training_stats.report('Loss/D/reg', loss_Dr1)
+                loss_Dr1 = 0
+                if do_Dr1:
+                    # with torch.autograd.profiler.record_function('r1_grads'), conv2d_gradfix.no_weight_gradients():
+                    #     #TODO: i set allow_unused to True, i think this breaks recording of the gradients?? not too sure. #, allow_unused=True
+                    #     r1_grads = torch.autograd.grad(outputs=[real_logits.sum()], inputs=[real_img_tmp], create_graph=True, only_inputs=True)[0]
+                    # r1_penalty = r1_grads.square().sum([1,2,3])
+                    # loss_Dr1 = r1_penalty * (self.r1_gamma / 2)
+                    loss_Dr1 = 0
+                    r1_penalty = 0
+                    training_stats.report('Loss/r1_penalty', r1_penalty)
+                    training_stats.report('Loss/D/reg', loss_Dr1)
 
-        #     with torch.autograd.profiler.record_function(name + '_backward'):
-        #         (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).backward()
+            with torch.autograd.profiler.record_function(name + '_backward'):
+                (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).backward()
 
 #----------------------------------------------------------------------------
