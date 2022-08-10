@@ -322,13 +322,13 @@ def training_loop(
             phase_real_img, phase_real_c = next(training_set_iterator)
             phase_real_img = phase_real_img.to(torch.float32).to(device)
 
-            if encode:
-                phase_real_img = autoencoder.encode(phase_real_img)
-                #TODO: convert to linear layer rather than use normalisation constant
-                phase_real_img = phase_real_img / STD_NORM
-                phase_real_img = torch.clamp(phase_real_img, -1., 1.)
-            else:
-                phase_real_img = (phase_real_img / 127.5 - 1)
+            # if encode:
+            #     # phase_real_img = autoencoder.encode(phase_real_img)
+            #     #TODO: convert to linear layer rather than use normalisation constant
+            #     phase_real_img = phase_real_img / STD_NORM
+            #     phase_real_img = torch.clamp(phase_real_img, -1., 1.)
+            # else:
+            phase_real_img = (phase_real_img / 127.5 - 1)
                 
             phase_real_img = phase_real_img.split(batch_gpu)
             phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
