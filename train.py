@@ -116,7 +116,8 @@ def setup_training_loop_kwargs(
 
     assert data is not None
     assert isinstance(data, str)
-    class_name = 'training.dataset.EncodedDataset' if encode else 'training.dataset.ImageFolderDataset'
+    # class_name = 'training.dataset.EncodedDataset' if encode else 'training.dataset.ImageFolderDataset'
+    class_name = 'training.dataset.ImageFolderDataset'
     args.training_set_kwargs = dnnlib.EasyDict(class_name=class_name, path=data, use_labels=True, max_size=None, xflip=False, clear=clear, batch_size=batch, ngpu=gpus)
     args.data_loader_kwargs = dnnlib.EasyDict(pin_memory=True, num_workers=3, prefetch_factor=2)
     

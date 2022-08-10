@@ -24,7 +24,7 @@ from torch_utils.ops import grid_sample_gradfix
 import legacy
 from metrics import metric_main
 
-from transforms.latent import STD_NORM
+from transforms.latent import STD_NORM, Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -171,9 +171,9 @@ def training_loop(
     if rank == 0:
         print('Loading training set...')
 
-    if encode:
-        training_set_kwargs.rank = rank
-        training_set_kwargs.cache = True
+    # if encode:
+    #     training_set_kwargs.rank = rank
+    #     training_set_kwargs.cache = True
     training_set = dnnlib.util.construct_class_by_name(**training_set_kwargs) # subclass of training.dataset.Dataset
     training_set_sampler = misc.InfiniteSampler(dataset=training_set, rank=rank, num_replicas=num_gpus, seed=random_seed)
     training_set_iterator = iter(torch.utils.data.DataLoader(dataset=training_set, sampler=training_set_sampler, batch_size=batch_size//num_gpus, **data_loader_kwargs))
@@ -234,7 +234,13 @@ def training_loop(
     # Setup training phases.
     if rank == 0:
         print('Setting up training phases...')
-    loss = dnnlib.util.construct_class_by_name(device=device, **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
+
+    if encode:
+        autoencoder = Autoencoder(device)
+    else:
+        autoencoder = None
+    
+    loss = dnnlib.util.construct_class_by_name(device=device, autoencoder = , **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
     phases = []
     for name, module, opt_kwargs, reg_interval in [('G', G, G_opt_kwargs, G_reg_interval), ('D', D, D_opt_kwargs, D_reg_interval)]:
         if reg_interval is None:
@@ -316,7 +322,8 @@ def training_loop(
             phase_real_img, phase_real_c = next(training_set_iterator)
 
             if encode:
-                phase_real_img = torch.FloatTensor(phase_real_img).to(device)
+                phase_real_img = autoencoder.encode(phase_real_img)
+                # phase_real_img = torch.FloatTensor(phase_real_img).to(device)
                 #TODO: convert to linear layer rather than use normalisation constant
                 phase_real_img = phase_real_img / STD_NORM
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
