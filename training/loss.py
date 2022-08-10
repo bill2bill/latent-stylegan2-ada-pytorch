@@ -48,10 +48,10 @@ class StyleGAN2Loss(Loss):
             img = self.G_synthesis(ws)
         return img, ws
 
-    def run_D(self, img, c, sync):
+    def run_D(self, img, c, sync, encode = False):
         if self.augment_pipe is not None:
             img = self.augment_pipe(img)
-        if self.autoencoder is not None:
+        if self.autoencoder is not None and encode:
             img = self.autoencoder.encode(img)
         with misc.ddp_sync(self.D, sync):
             logits = self.D(img, c)
@@ -113,7 +113,7 @@ class StyleGAN2Loss(Loss):
             name = 'Dreal_Dr1' if do_Dmain and do_Dr1 else 'Dreal' if do_Dmain else 'Dr1'
             with torch.autograd.profiler.record_function(name + '_forward'):
                 real_img_tmp = real_img.detach().requires_grad_(do_Dr1)
-                real_logits = self.run_D(real_img_tmp, real_c, sync=sync)
+                real_logits = self.run_D(real_img_tmp, real_c, sync=sync, encode = True)
                 training_stats.report('Loss/scores/real', real_logits)
                 training_stats.report('Loss/signs/real', real_logits.sign())
 
