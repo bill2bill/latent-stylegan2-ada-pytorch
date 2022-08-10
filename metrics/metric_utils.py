@@ -182,12 +182,6 @@ class ProgressMonitor:
 
 def compute_feature_stats_for_dataset(opts, detector_url, detector_kwargs, rel_lo=0, rel_hi=1, batch_size=64, data_loader_kwargs=None, max_items=None, **stats_kwargs):
     dataset_kwargs = opts.dataset_kwargs
-    if opts.encode:
-        # Dataset needs to be reset
-        del dataset_kwargs.resolution
-        del dataset_kwargs.use_labels
-        del dataset_kwargs.rank
-        dataset_kwargs.class_name = 'training.dataset.ImageFolderDataset'
 
     dataset = dnnlib.util.construct_class_by_name(**dataset_kwargs)
     
