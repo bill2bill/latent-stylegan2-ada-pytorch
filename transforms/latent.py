@@ -117,7 +117,7 @@ class Autoencoder:
         # if ngpu is None:
         #     model = model.to(device)
         # else:
-        # model = model.to(torch.device('cuda', 0))
+        model = model.to(device)
 
         # def parralel(model):
         #     # if ngpu is None:
