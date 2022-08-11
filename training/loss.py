@@ -53,7 +53,7 @@ class StyleGAN2Loss(Loss):
             img = self.augment_pipe(img)
         if self.autoencoder is not None and encode:
             img = self.autoencoder.encode(img)
-            # img = img.clone().detach().requires_grad_(True).to(self.device)
+            img = img.clone().detach().requires_grad_(True).to(self.device)
         with misc.ddp_sync(self.D, sync):
             logits = self.D(img, c)
         return logits, img
