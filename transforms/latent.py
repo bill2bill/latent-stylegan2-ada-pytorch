@@ -118,10 +118,16 @@ class Autoencoder:
         #     model = model.to(device)
         # else:
         # model = model.to(torch.device('cuda', 0))
-        model = model.eval().to(device)
-        model.requires_grad_(True)
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-        model.requires_grad_(False)
+        
+
+        if ngpu is None:
+            model = model.eval().to(device)
+            model.requires_grad_(True)
+            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+            model.requires_grad_(False)
+        else:
+            model = model.to(torch.device('cuda', 0))
+            # model = nn.DataParallel(model, list(range(ngpu)))
 
         # def parralel(model):
         #     if ngpu is None:
