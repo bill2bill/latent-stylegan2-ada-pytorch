@@ -21,6 +21,8 @@ from torch_utils import training_stats
 from torch_utils.ops import conv2d_gradfix
 from torch_utils.ops import grid_sample_gradfix
 
+import time
+
 import legacy
 from metrics import metric_main
 
@@ -464,6 +466,8 @@ def training_loop(
                 with open(snapshot_pkl, 'wb') as f:
                     pickle.dump(snapshot_data, f)
             torch.cuda.empty_cache()
+
+        time.sleep(2)
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):
