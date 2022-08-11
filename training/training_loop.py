@@ -314,17 +314,16 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
+            phase_real_img = phase_real_img.to(torch.float32).to(device)
 
             if encode:
-                phase_real_img = torch.FloatTensor(phase_real_img).to(device)
                 #TODO: convert to linear layer rather than use normalisation constant
                 phase_real_img = phase_real_img / STD_NORM
                 phase_real_img = torch.clamp(phase_real_img, -1., 1.)
-                phase_real_img = phase_real_img.split(batch_gpu)
             else:
-                phase_real_img = phase_real_img.to(torch.float32).to(device)
-                phase_real_img = (phase_real_img / 127.5 - 1).split(batch_gpu)
+                phase_real_img = (phase_real_img / 127.5 - 1)
             phase_real_c = torch.FloatTensor(phase_real_c).to(device).split(batch_gpu)
+            phase_real_img = phase_real_img.split(batch_gpu)
 
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
