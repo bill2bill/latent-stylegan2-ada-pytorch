@@ -117,33 +117,32 @@ class Autoencoder:
         # if ngpu is None:
         #     model = model.to(device)
         # else:
-        # model = model.to(torch.device('cuda', 0))
+        model = model.to(torch.device('cuda', 0))
         
 
-        if ngpu is None:
-            model = model.eval().to(device)
-            model.requires_grad_(True)
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-            model.requires_grad_(False)
-        else:
-            model = model.to(torch.device('cuda', 0))
-            model = nn.DataParallel(model, list(range(ngpu)))
+        # if ngpu is None:
+        #     model = model.eval().to(device)
+        #     model.requires_grad_(True)
+        #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+        #     model.requires_grad_(False)
+        # else:
+        #     model = model.to(torch.device('cuda', 0))
+        #     model = nn.DataParallel(model, list(range(ngpu)))
 
-        # def parralel(model):
-        #     if ngpu is None:
-        #         model.requires_grad_(True)
-        #         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-        #         model.requires_grad_(False)
-        #         return model
-        #         # return model.to(device)
-        #     else:
-        #         return nn.DataParallel(model, list(range(ngpu)))
+        def parralel(model):
+            if ngpu is None:
+                model.requires_grad_(True)
+                model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+                model.requires_grad_(False)
+                return model
+            else:
+                return nn.DataParallel(model, list(range(ngpu)))
 
-        # model.encoder = parralel(model.encoder)
-        # model.decoder = parralel(model.decoder)
-        # model.loss = parralel(model.loss)
-        # model.quant_conv = parralel(model.quant_conv)
-        # model.post_quant_conv = parralel(model.post_quant_conv)
+        model.encoder = parralel(model.encoder)
+        model.decoder = parralel(model.decoder)
+        model.loss = parralel(model.loss)
+        model.quant_conv = parralel(model.quant_conv)
+        model.post_quant_conv = parralel(model.post_quant_conv)
 
         # #for vq ae
         # model.quantize = parralel(model.quantize)
@@ -154,7 +153,7 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            return self._model.module.encode(images).sample()
+            return self._model.encode(images).sample()
             # encoded = self._model.encode(images)
             # return encoded
 
@@ -164,6 +163,6 @@ class Autoencoder:
             assert(len(latent.shape) == 4)
             latent = latent * self.norm
 
-            return self._model.module.decode(latent)
+            return self._model.decode(latent)
 
 #----------------------------------------------------------------------------
