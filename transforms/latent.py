@@ -107,19 +107,20 @@ def setup():
     # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", PREFIX, CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device, ddp = True, type = 'kl'):
+    def __init__(self, device, ddp = False, type = 'kl'):
         self.device = device
         self.norm = STD_NORM
+        self.ddp = ddp
 
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
         model = model.eval().requires_grad_(False).to(device)
         # model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
 
-        if ddp:
-            model.requires_grad_(True)
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-            model.requires_grad_(False)
+        # if ddp:
+        #     model.requires_grad_(True)
+        #     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+        #     model.requires_grad_(False)
 
         self._model = model
 
@@ -127,7 +128,10 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            return self._model.module.encode(images).sample()
+            if self.ddp:
+                return self._model.module.encode(images).sample()
+            else:
+                return self._model.encode(images).sample()
             # return self._model.encode(images)
 
     # batch, channel, width, height
@@ -135,6 +139,9 @@ class Autoencoder:
         with torch.no_grad():
             assert(len(latent.shape) == 4)
             latent = latent * self.norm
-            return self._model.module.decode(latent)
+            if self.ddp:
+                return self._model.module.decode(latent)
+            else:
+                return self._model.decode(latent)
 
 #----------------------------------------------------------------------------

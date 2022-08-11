@@ -219,6 +219,12 @@ def training_loop(
         if ada_target is not None:
             ada_stats = training_stats.Collector(regex='Loss/signs/real')
 
+    # Setup Autoencoder
+    if encode:
+        autoencoder = Autoencoder(device, ddp = False)
+    else:
+        autoencoder = None
+
     # Distribute across GPUs.
     if rank == 0:
         print(f'Distributing across {num_gpus} GPUs...')
@@ -234,11 +240,6 @@ def training_loop(
     # Setup training phases.
     if rank == 0:
         print('Setting up training phases...')
-
-    if encode:
-        autoencoder = Autoencoder(device)
-    else:
-        autoencoder = None
     
     loss = dnnlib.util.construct_class_by_name(device=device, autoencoder = autoencoder, **ddp_modules, **loss_kwargs) # subclass of training.loss.Loss
     phases = []
