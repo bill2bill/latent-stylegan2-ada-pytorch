@@ -127,7 +127,7 @@ class Autoencoder:
             model.requires_grad_(False)
         else:
             model = model.to(torch.device('cuda', 0))
-            # model = nn.DataParallel(model, list(range(ngpu)))
+            model = nn.DataParallel(model, list(range(ngpu)))
 
         # def parralel(model):
         #     if ngpu is None:
