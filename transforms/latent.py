@@ -154,7 +154,7 @@ class Autoencoder:
     def encode(self, images):
         with torch.no_grad():
             assert(len(images.shape) == 4)
-            return self._model.encode(images).sample()
+            return self._model.module.encode(images).sample()
             # encoded = self._model.encode(images)
             # return encoded
 
@@ -164,6 +164,6 @@ class Autoencoder:
             assert(len(latent.shape) == 4)
             latent = latent * self.norm
 
-            return self._model.decode(latent)
+            return self._model.module.decode(latent)
 
 #----------------------------------------------------------------------------
