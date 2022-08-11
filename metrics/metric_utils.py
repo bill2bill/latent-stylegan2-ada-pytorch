@@ -16,7 +16,7 @@ import uuid
 import numpy as np
 import torch
 import dnnlib
-from ..transforms.latent import Autoencoder
+from transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
