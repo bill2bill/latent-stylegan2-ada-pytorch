@@ -114,11 +114,11 @@ class Autoencoder:
         print(f'Creating Autoencoder on device: {device}')
         model = AutoencoderKL(DEFAULT_AE_CONFIG["ddconfig"], DEFAULT_AE_CONFIG["lossconfig"], DEFAULT_AE_CONFIG["embed_dim"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
         # model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
-        model = model.to(device)
+        model = model.requires_grad_(False).to(device)
 
-        model.requires_grad_(True)
+        # model.requires_grad_(True)
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-        model.requires_grad_(False)
+        # model.requires_grad_(False)
 
         self._model = model
 

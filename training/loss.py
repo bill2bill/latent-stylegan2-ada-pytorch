@@ -124,14 +124,11 @@ class StyleGAN2Loss(Loss):
 
                 loss_Dr1 = 0
                 if do_Dr1:
-                    # with torch.autograd.profiler.record_function('r1_grads'), conv2d_gradfix.no_weight_gradients():
-                    #     #TODO: i set allow_unused to True, i think this breaks recording of the gradients?? not too sure. #, allow_unused=True
-                    #     r1_grads = torch.autograd.grad(outputs=[real_logits.sum()], inputs=[real_img_tmp], create_graph=True, only_inputs=True)[0]
-                    # r1_penalty = r1_grads.square().sum([1,2,3])
-                    # loss_Dr1 = r1_penalty * (self.r1_gamma / 2)
-                    #TODO: review
-                    loss_Dr1 = 0
-                    r1_penalty = 0
+                    with torch.autograd.profiler.record_function('r1_grads'), conv2d_gradfix.no_weight_gradients():
+                        #TODO: i set allow_unused to True, i think this breaks recording of the gradients?? not too sure. #, allow_unused=True
+                        r1_grads = torch.autograd.grad(outputs=[real_logits.sum()], inputs=[real_img_tmp], create_graph=True, only_inputs=True)[0]
+                    r1_penalty = r1_grads.square().sum([1,2,3])
+                    loss_Dr1 = r1_penalty * (self.r1_gamma / 2)
                     training_stats.report('Loss/r1_penalty', r1_penalty)
                     training_stats.report('Loss/D/reg', loss_Dr1)
 
