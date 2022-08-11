@@ -465,9 +465,8 @@ def training_loop(
             if rank == 0:
                 with open(snapshot_pkl, 'wb') as f:
                     pickle.dump(snapshot_data, f)
-            torch.cuda.empty_cache()
-
-        time.sleep(2)
+        del snapshot_pkl
+        torch.cuda.empty_cache()
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):
@@ -480,8 +479,8 @@ def training_loop(
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
                 stats_metrics.update(result_dict.results)
             del result_dict
-            torch.cuda.empty_cache()
         del snapshot_data # conserve memory
+        torch.cuda.empty_cache()
 
         # Collect statistics.
         for phase in phases:
