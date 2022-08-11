@@ -107,7 +107,7 @@ def setup():
     # download_pre_trained_ae("https://ommer-lab.com/files/latent-diffusion/vq-f4.zip", PREFIX, CACHE_MODEL_DIR)
 
 class Autoencoder:
-    def __init__(self, device, type = 'kl'):
+    def __init__(self, device, ddp = True, type = 'kl'):
         self.device = device
         self.norm = STD_NORM
 
@@ -116,9 +116,10 @@ class Autoencoder:
         model = model.eval().requires_grad_(False).to(device)
         # model = VQModelInterface(embed_dim = DEFAULT_AE_CONFIG["embed_dim"], ddconfig = DEFAULT_AE_CONFIG["ddconfig"], lossconfig = DEFAULT_AE_CONFIG["lossconfig"], n_embed = DEFAULT_AE_CONFIG["n_embed"], ckpt_path=f"{get_cache_dir()}/{CACHE_MODEL_DIR}/{PREFIX}-model.ckpt")
 
-        model.requires_grad_(True)
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
-        model.requires_grad_(False)
+        if ddp:
+            model.requires_grad_(True)
+            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device], broadcast_buffers=False)
+            model.requires_grad_(False)
 
         self._model = model
 

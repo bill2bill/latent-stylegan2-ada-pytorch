@@ -16,6 +16,7 @@ import uuid
 import numpy as np
 import torch
 import dnnlib
+from ..transforms.latent import Autoencoder
 
 #----------------------------------------------------------------------------
 
@@ -246,14 +247,14 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
 
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
+    autoencoder = Autoencoder(opts.device, ddp=False)
     dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
 
     # Image generation func.
     def run_generator(z, c):
         img = G(z=z, c=c, **opts.G_kwargs)
         if opts.encode: 
-            img = img.to(opts.device)
-            img = opts.autoencoder.decode(img).to(opts.device).clamp(-1, 1)
+            img = autoencoder.decode(img).clamp(-1, 1)
         img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         return img
 
@@ -286,7 +287,7 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
         stats.append_torch(features, num_gpus=opts.num_gpus, rank=opts.rank)
         if opts.progress is not None:
             progress.update(stats.num_items)
-    del dataset, G
+    del dataset, G, autoencoder
     torch.cuda.empty_cache()
     return stats
 
