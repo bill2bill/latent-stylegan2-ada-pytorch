@@ -21,10 +21,17 @@ I also made a custom encoder Dataset at training/dataset.py for creating an enco
 **Future Improvements**
 * Use a linear model to normalise the latent space to a range that the encoder can parse, instead of dividing by the contanst NORM_STD.
 * Clean up the code in the transforms/latent.py file, ie move file and cache functions to the utils directory.
+* Use the augmentation pipeline in the image domain and not the latent domain. Would require a large refactoring and coding of the library.
 
 **Stats**
 
 I have saved some stats from running the model in different configurations in the example directory.
+
+**Acknowledgement**
+
+Thanks to my supervisor Ivor Simpson [profile](https://profiles.sussex.ac.uk/p504012-ivor-simpson) and industry partner Justin Pinkney [portfolio](https://www.justinpinkney.com) for supporting the project.
+
+Additional thanks to **Lambda Labs** for providing GPU compute resources for this project via [Lambda GPU Cloud](https://lambdalabs.com/service/gpu-cloud).
 
 **👇👇👇👇👇 original documentation below 👇👇👇👇👇**
 
