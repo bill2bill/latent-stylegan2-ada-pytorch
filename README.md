@@ -9,7 +9,7 @@ https://arxiv.org/pdf/2112.10752<br>
 
 Building on the already well implemented library for StyleGAN2-ADA, I have added features allowing for training in the latent domain.
 
-**Features**
+#### Features
 * --encode  -  A boolean flag that determines whether the data is encoded
 * --clear  -  A boolean flat that determines whether the cache is cleared
 * --lrate  -  A float which overides the default learning rate of the Generator and Discriminator
@@ -18,18 +18,14 @@ The transforms/latent.py is where the Autoencoder wrapper class is located. Modi
 
 I also made a custom encoder Dataset at training/dataset.py for creating an encoded cache and loading encoded data in batch.
 
-**Future Improvements**
+#### Future Improvements
 * Use a linear model to normalise the latent space to a range that the encoder can parse, instead of dividing by the contanst NORM_STD.
 * Clean up the code in the transforms/latent.py file, ie move file and cache functions to the utils directory.
 * Use the augmentation pipeline in the image domain and not the latent domain. Would require a large refactoring and coding of the library.
 
-**Stats**
+### Acknowledgement
 
-I have saved some stats from running the model in different configurations in the example directory.
-
-**Acknowledgement**
-
-Thanks to my supervisor Ivor Simpson [profile](https://profiles.sussex.ac.uk/p504012-ivor-simpson) and industry partner Justin Pinkney [portfolio](https://www.justinpinkney.com) for supporting the project.
+Thanks to my supervisor **Ivor Simpson** [profile](https://profiles.sussex.ac.uk/p504012-ivor-simpson) and industry partner **Justin Pinkney** [portfolio](https://www.justinpinkney.com) for supporting the project.
 
 Additional thanks to **Lambda Labs** for providing GPU compute resources for this project via [Lambda GPU Cloud](https://lambdalabs.com/service/gpu-cloud).
 
