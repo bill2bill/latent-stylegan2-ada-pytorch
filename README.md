@@ -18,6 +18,10 @@ The transforms/latent.py is where the Autoencoder wrapper class is located. Modi
 
 I also made a custom encoder Dataset at training/dataset.py for creating an encoded cache and loading encoded data in batch.
 
+#### Conclusion
+
+To conclude the fundamental issue that the project has highlighted in latent model training is using augmentations designed for image domain on an abstract data representation. The project showed that training on a compressed version of the original data can reduce training time by halving the original time. However, due to the issues represented with augmentations the fidelity of the original model was not matched.
+
 #### Future Improvements
 * Use a linear model to normalise the latent space to a range that the encoder can parse, instead of dividing by the contanst NORM_STD.
 * Clean up the code in the transforms/latent.py file, ie move file and cache functions to the utils directory.
@@ -25,7 +29,7 @@ I also made a custom encoder Dataset at training/dataset.py for creating an enco
 
 ### Acknowledgement
 
-Thanks to my supervisor **Ivor Simpson** [profile](https://profiles.sussex.ac.uk/p504012-ivor-simpson) and industry partner **Justin Pinkney** [portfolio](https://www.justinpinkney.com) for supporting the project.
+Thanks to my supervisor **Ivor Simpson** ([profile](https://profiles.sussex.ac.uk/p504012-ivor-simpson)) and industry partner **Justin Pinkney** ([portfolio](https://www.justinpinkney.com)) for supporting the project.
 
 Additional thanks to **Lambda Labs** for providing GPU compute resources for this project via [Lambda GPU Cloud](https://lambdalabs.com/service/gpu-cloud).
 
